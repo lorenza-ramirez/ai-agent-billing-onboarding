@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Biller journey, Mild: the agent helps me solve the claim in front of me</title>
+<style>
+:root{
+  color-scheme: light;
+  --bg:#EEF0F3; --surface:#FFFFFF; --surface-2:#F6F7F9;
+  --ink:#1A1D23; --muted:#5D6472; --faint:#8A909C;
+  --line:#E2E5EA; --line-strong:#CDD2DA;
+  --accent:#2F5BEA; --accent-soft:#E9EEFE;
+  --red:#C2362F; --red-soft:#FCEBEA;
+  --ok:#2A7A4B; --ok-soft:#E4F3EA; --warn:#A8660E; --warn-soft:#FBF1E1;
+  --stage:#EFEBFC; --stage-ink:#4C35A8; --ai:#6A4BD1; --ai-soft:#EFEBFC;
+  --shadow:0 1px 2px rgba(20,24,33,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root{
+    color-scheme: dark;
+    --bg:#121418; --surface:#1B1E24; --surface-2:#22262D;
+    --ink:#E8EAEE; --muted:#A3A9B5; --faint:#7C8390;
+    --line:#2D323A; --line-strong:#3B414B;
+    --accent:#7D9BFF; --accent-soft:#232C4A;
+    --red:#F08A83; --red-soft:#3A1D1B;
+    --ok:#62C48B; --ok-soft:#183323; --warn:#E0A450; --warn-soft:#3A2C17;
+    --stage:#2A2442; --stage-ink:#C9BCFA; --ai:#A994F5; --ai-soft:#2A2442;
+    --shadow:none;
+  }
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
+button{font:inherit;color:inherit;cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+.num{font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)} .small{font-size:13px}
+
+/* Top bar */
+.topbar{height:52px;display:flex;align-items:center;gap:16px;padding:0 16px}
+.crumbs{display:flex;align-items:center;gap:8px;color:var(--muted)}
+.crumbs b{color:var(--ink);font-weight:600}
+.crumbs button{background:none;border:0;padding:4px 6px;border-radius:6px;color:var(--muted)}
+.crumbs button:hover{background:var(--surface)}
+.search{flex:1;max-width:440px;margin:0 auto;height:34px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;padding:0 12px;color:var(--faint);font-size:13px}
+.ai-btn{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:8px;border:0;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.ai-btn .spin{width:12px;height:12px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;display:none;animation:spin .8s linear infinite}
+.ai-btn.working .spin{display:inline-block}
+.proto-btn{height:34px;padding:0 10px;border-radius:8px;border:1px dashed var(--line-strong);background:none;color:var(--muted);font-size:12px}
+
+.main{padding:0 12px 12px;height:calc(100vh - 52px)}
+
+/* Worklist */
+.wl{background:var(--surface);border:1px solid var(--line);border-radius:12px;height:100%;display:flex;flex-direction:column;overflow:hidden}
+.wl-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+.wl-head h1{margin:0;font-size:18px}
+.banner{display:flex;align-items:center;gap:10px;padding:10px 18px;background:var(--ok-soft);color:var(--ok);font-weight:500;border-bottom:1px solid var(--line)}
+.wl-scroll{overflow:auto;flex:1}
+table{width:100%;border-collapse:collapse}
+th{font-size:12px;font-weight:600;color:var(--muted);text-align:left;padding:9px 18px;border-bottom:1px solid var(--line);background:var(--surface-2);position:sticky;top:0}
+td{padding:11px 18px;border-bottom:1px solid var(--line)}
+td.r,th.r{text-align:right}
+tr.click{cursor:pointer}
+tr.click:hover td{background:var(--surface-2)}
+tr.dimrow td{color:var(--muted)}
+.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap}
+.pill.red{background:var(--red-soft);color:var(--red)}
+.pill.ok{background:var(--ok-soft);color:var(--ok)}
+.pill.wait{background:var(--accent-soft);color:var(--accent)}
+.pill.warn{background:var(--warn-soft);color:var(--warn)}
+
+/* Claim view */
+.claim{display:grid;grid-template-columns:400px 1fr;gap:12px;height:100%}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
+.p-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
+.p-head b{font-size:15px}
+.p-body{overflow:auto;padding:14px 16px 16px;flex:1}
+.sec{font-size:13px;color:var(--muted);font-weight:500;margin:4px 0 10px}
+.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.pk{font-size:13px;color:var(--muted);margin-bottom:4px}
+.chipv{display:inline-flex;align-items:center;font-size:13px;font-weight:500;padding:4px 10px;border-radius:7px;background:var(--surface-2)}
+.chipv.red{background:var(--red-soft);color:var(--red)}
+.chipv.stage{background:var(--stage);color:var(--stage-ink)}
+.chipv.person{background:var(--ok-soft);color:var(--ok)}
+.chipv.wait{background:var(--accent-soft);color:var(--accent)}
+.sep{border-top:1px solid var(--line);margin:16px 0 12px}
+.src{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:6px 0;text-align:left}
+.src:hover{color:var(--accent)}
+.src .ico{width:16px;height:16px;flex:none;border:1.5px solid var(--line-strong);border-radius:3px}
+.back{background:none;border:0;color:var(--accent);padding:0;font-weight:500;margin-bottom:12px}
+.doc h3{margin:0 0 2px;font-size:16px}
+.doc .meta{color:var(--muted);font-size:13px;margin-bottom:12px}
+.doc p{margin:0 0 10px}
+.doc .hl{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent);padding:6px 10px;border-radius:4px}
+.lines{width:100%;border-collapse:collapse;font-size:13px}
+.lines th{position:static;background:none;padding:6px 6px;font-size:12px}
+.lines td{padding:7px 6px}
+.lines tr.hl td{background:var(--accent-soft)}
+.aimark{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--ai);background:var(--ai-soft);padding:1px 6px;border-radius:5px;margin-left:6px;white-space:nowrap}
+.aimark svg{width:10px;height:10px}
+.act-item{display:flex;gap:8px;font-size:13px;padding:5px 0}
+.act-item .d{width:7px;height:7px;border-radius:50%;background:var(--line-strong);margin-top:7px;flex:none}
+.act-item .d.ai{background:var(--ai)}
+.act-item .t{color:var(--faint);font-size:12px}
+
+/* Thread */
+.convo{display:flex;flex-direction:column;min-height:0}
+.c-top{border-bottom:1px solid var(--line);padding:10px 20px;display:flex;align-items:center;gap:12px}
+.agent-id{display:flex;align-items:center;gap:10px}
+.avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;flex:none}
+.avatar svg{width:16px;height:16px}
+.ah-name{font-weight:600}
+.tag{font-size:11px;font-weight:600;padding:1px 7px;border-radius:5px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);margin-left:6px}
+.ah-status{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px}
+.dot-live{width:7px;height:7px;border-radius:50%;background:var(--ok)}
+.dot-work{width:10px;height:10px;border-radius:50%;border:2px solid var(--accent);border-right-color:transparent;animation:spin .8s linear infinite}
+.cando-btn{margin-left:auto;background:none;border:0;color:var(--accent);font-size:13px;font-weight:500}
+.cando{margin:10px 20px 0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface-2);font-size:13px}
+.thread{flex:1;overflow:auto;padding:20px 20px 8px}
+.inner{max-width:800px;margin:0 auto}
+.cmsg{display:flex;gap:12px;margin-bottom:18px}
+.cmsg .cbody{flex:1;min-width:0}
+.cmsg .who{font-size:12px;color:var(--muted);margin-bottom:4px;display:flex;gap:8px;align-items:center}
+.cmsg .who b{color:var(--ink)}
+.cmsg p{margin:0 0 10px;max-width:68ch}
+.cmsg.user{justify-content:flex-end}
+.cmsg.user .cbody{flex:none;max-width:75%;text-align:right}
+.cmsg.user .who{justify-content:flex-end}
+.cmsg.user .bubble{display:inline-block;text-align:left;background:var(--accent-soft);padding:9px 13px;border-radius:12px}
+.cmsg.reveal{animation:rise .35s ease both}
+.cevent{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:-6px 0 16px 42px;flex-wrap:wrap}
+.cevent::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--line-strong);flex:none}
+.cevent .undo{background:none;border:0;color:var(--accent);font-weight:500;padding:0;font-size:13px}
+.how{background:none;border:0;padding:0;color:var(--accent);font-size:12px;margin-top:2px}
+.card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px 16px;box-shadow:var(--shadow)}
+.sum h4{margin:0 0 4px;font-size:13px;color:var(--muted);font-weight:600}
+.sum p{margin:0 0 12px}
+.evs{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px}
+.ev{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:3px 9px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2)}
+.ev:hover{border-color:var(--accent);color:var(--accent)}
+.ev::before{content:"";width:10px;height:12px;border:1.5px solid currentColor;border-radius:2px;opacity:.6}
+.thumbs{display:flex;gap:6px}
+.thumbs button{background:none;border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:12px;color:var(--muted)}
+.thumbs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
+.plan-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 8px}
+.plan-title b{font-size:14px}
+.pstep{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:grid;grid-template-columns:24px 1fr;gap:10px}
+.pstep .no{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line-strong);display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--muted)}
+.pstep.done .no{background:var(--ok);border-color:var(--ok);color:transparent;position:relative}
+.pstep.done .no::after{content:"";position:absolute;width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
+.pstep.locked{opacity:.55}
+.pstep.current{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+.pstep h5{margin:0;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.pstep .why{font-size:13px;color:var(--muted);margin:4px 0 0}
+.chg{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--surface-2);border-radius:6px;padding:3px 8px;margin-top:8px}
+.revised{font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:1px 7px;border-radius:5px}
+.accepted{font-size:12px;color:var(--ok);font-weight:600}
+.pbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.btn{height:32px;padding:0 13px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
+.btn.primary:hover{filter:brightness(1.05);background:var(--accent)}
+.btn.ghost{border-color:transparent;color:var(--muted)}
+.btn.ghost:hover{background:var(--surface-2)}
+.btns{display:flex;gap:8px;flex-wrap:wrap}
+.reasons{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
+.reasons button{border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:4px 10px;font-size:12px}
+.reasons button:hover{border-color:var(--accent);color:var(--accent)}
+.editlines{display:grid;gap:6px;margin-top:10px}
+.editlines label{display:flex;gap:8px;align-items:center;font-size:13px}
+.diff{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
+.diff td,.diff th{padding:6px 8px;border-bottom:1px solid var(--line);position:static;background:none}
+.diff .new{background:var(--ok-soft);color:var(--ok);font-weight:600;border-radius:4px;padding:1px 6px}
+.groups{display:grid;gap:8px;margin:10px 0}
+.grp{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.grp input{margin-top:3px}
+.grp b{display:block}
+.near{margin:6px 0 0;padding:0;list-style:none}
+.near li{font-size:13px;color:var(--muted);padding:4px 0;border-top:1px solid var(--line)}
+.near li:first-child{border-top:0}
+.near b{color:var(--ink);font-weight:500}
+.nextc{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
+.callprep{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin:8px 0}
+.callprep span:nth-child(odd){color:var(--muted)}
+
+/* Working */
+.work{border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--surface-2);max-width:520px}
+.work-title{font-size:13px;font-weight:600;margin-bottom:6px}
+.wstep{display:flex;align-items:flex-start;gap:10px;padding:4px 0;font-size:13px;color:var(--faint)}
+.wstep.active,.wstep.done{color:var(--ink)}
+.wcheck{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line-strong);display:grid;place-items:center;flex:none;margin-top:3px}
+.wstep.done .wcheck{background:var(--ok);border-color:var(--ok)}
+.wstep.done .wcheck::after{content:"";width:5px;height:3px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translate(0,-1px)}
+.wstep.active .wcheck{border-color:var(--accent);border-right-color:transparent;animation:spin .8s linear infinite}
+.wdetail{display:none;font-size:12px;color:var(--muted)}
+.wstep.done .wdetail{display:block}
+.wcollapsed{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;color:var(--muted);font-size:13px;margin-bottom:10px}
+.wcollapsed .wcheck{background:var(--ok);border-color:var(--ok);margin:0}
+.wcollapsed .wcheck::after{content:"";width:5px;height:3px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translate(0,-1px)}
+
+/* Composer */
+.composer{border-top:1px solid var(--line);padding:10px 20px 12px}
+.chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
+.chip{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2)}
+.chip:hover{border-color:var(--accent);color:var(--accent)}
+.refchip{display:inline-flex;gap:6px;align-items:center;font-size:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:3px 8px;margin-bottom:8px}
+.refchip button{background:none;border:0;padding:0;color:var(--muted)}
+.input-row{display:flex;gap:8px;border:1px solid var(--line-strong);border-radius:10px;padding:5px 5px 5px 12px;background:var(--surface)}
+.input-row input{flex:1;border:0;background:none;font:inherit;color:var(--ink);outline:none;min-width:0}
+.send{width:30px;height:30px;border-radius:50%;border:0;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none}
+.helper{font-size:12px;color:var(--faint);margin-top:6px}
+
+/* Walkthrough tracker, in the top bar */
+.tracker{position:relative}
+.tr-pill{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:13px;max-width:340px}
+.tr-pill .ring{width:16px;height:16px;border-radius:50%;flex:none;background:conic-gradient(var(--accent) var(--p), var(--line) 0)}
+.tr-pill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tr-pop{position:absolute;right:0;top:40px;width:300px;background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:45;padding:10px 14px 12px;font-size:13px}
+.tr-pop .k{font-size:12px;color:var(--faint);font-weight:600;margin-bottom:6px}
+.tr-list{list-style:none;margin:0;padding:0}
+.tr-list li{display:flex;gap:8px;padding:3px 0;color:var(--faint)}
+.tr-list li.done{color:var(--muted)}
+.tr-list li.cur{color:var(--ink);font-weight:600}
+.tr-list li .m{width:14px;flex:none;text-align:center}
+.tr-list li .loop{margin-left:auto;font-size:11px;font-weight:500;color:var(--faint)}
+
+/* Prototype controls */
+.proto{position:fixed;left:16px;bottom:16px;width:270px;background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:40;display:none}
+.proto.show{display:block}
+.proto h4{margin:0 0 8px;font-size:13px}
+.proto button{display:block;width:100%;text-align:left;background:none;border:0;padding:5px 6px;border-radius:6px;font-size:13px}
+.proto button:hover{background:var(--surface-2)}
+.proto .psep{border-top:1px solid var(--line);margin:8px 0}
+
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
+@media (max-width:1000px){
+  .claim{grid-template-columns:1fr;height:auto}
+  .main{height:auto}
+  .convo{min-height:80vh}
+  .search{display:none}
+  .tr-pill span{display:none}
+}
+</style>
+</head>
+<body>
+<header class="topbar">
+  <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
+  <div class="search" aria-hidden="true">Global search</div>
+  <div class="tracker" id="tracker"></div>
+  <button class="ai-btn" id="aiBtn" type="button"><span class="spin"></span>
+    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l2.2 6.3L20 10l-5.8 1.7L12 18l-2.2-6.3L4 10l5.8-1.7z"/></svg>Athelas Agent</button>
+  <button class="proto-btn" id="protoBtn" type="button" aria-expanded="false">Prototype controls</button>
+</header>
+<main class="main" id="main"></main>
+
+
+<div class="proto" id="proto" role="dialog" aria-label="Prototype controls">
+  <h4>Prototype controls</h4>
+  <button data-jump="reset">Reset to the worklist</button>
+  <div class="psep"></div>
+  <button data-jump="summary">Summary ready</button>
+  <button data-jump="revised">Plan revised after the question</button>
+  <button data-jump="resubmitted">Claim resubmitted</button>
+  <button data-jump="pattern">Similar claims shown</button>
+  <button data-jump="applied">Fix applied once</button>
+  <div class="psep"></div>
+  <button data-hold type="button">Hold: still open</button>
+</div>
+
+<script>
+/* ---------- Story data (fictional) ---------- */
+const CLAIM = {id:"22316691", practice:"Rock Valley Physical Therapy and Therapy Services", patient:"Alex Rivera", dob:"03/14/1986", payer:"Iowa Blue Shield", member:"IBS10001", dos:"10/07/2026", billed:386};
+const LINES = [["97110","Therapeutic exercise",96.50],["97112","Neuromuscular re-education",96.50],["97140","Manual therapy",76.50],["97161","PT evaluation, low complexity",116.50]];
+const WORKLIST = [
+  {id:"22316691", patient:"Alex Rivera", payer:"Iowa Blue Shield", amt:386.00, reason:"Missing modifier", age:"6 days"},
+  {id:"22316702", patient:"Ben Ward", payer:"Prairie Health Plan", amt:145.20, reason:"Referring provider missing", age:"5 days"},
+  {id:"22316715", patient:"Grace Holt", payer:"Wellmark", amt:298.00, reason:"Eligibility", age:"5 days"},
+  {id:"22316720", patient:"Owen Pike", payer:"Iowa Blue Shield", amt:412.00, reason:"Missing modifier", age:"4 days", similar:true},
+  {id:"22316733", patient:"Rosa Diaz", payer:"Medicare", amt:221.40, reason:"KX threshold", age:"4 days"},
+  {id:"22316741", patient:"Luis Ortega", payer:"Iowa Blue Shield", amt:368.00, reason:"Missing modifier", age:"3 days", similar:true},
+  {id:"22316752", patient:"Maya Chen", payer:"Aetna", amt:254.60, reason:"Timely filing", age:"3 days"},
+  {id:"22316768", patient:"Ana Silva", payer:"Iowa Blue Shield", amt:342.00, reason:"Missing modifier", age:"2 days", similar:true},
+  {id:"22316774", patient:"Chris Wu", payer:"Medica", amt:186.00, reason:"Credentialing", age:"2 days"},
+  {id:"22316780", patient:"Lena Brooks", payer:"Iowa Blue Shield", amt:318.00, reason:"Missing modifier", age:"1 day", similar:true}
+];
+const SOURCES = {
+  details:{title:"Claim details"},
+  record:{title:"Medical record", meta:"Visit Oct 7, 2026. Alex Rivera. Signed by Dana Lee, PT, DPT.",
+    body:[["Subjective: patient reports improved balance at home, fewer near falls."],["Plan of care: habilitative. Goal is to build balance and gait skills not previously attained.",true],["Treatment: therapeutic exercise, neuromuscular re-education, manual therapy."],["Initial evaluation completed today."]]},
+  remit:{title:"Remittance", meta:"Iowa Blue Shield, Oct 14, 2026.",
+    body:[["Claim 22316691. Paid $0.00 of $386.00."],["CO-4: the procedure code is inconsistent with the modifier used, or a required modifier is missing.",true],["Applied to 97110, 97112, 97140, 97161."]]},
+  history:{title:"Claim history", meta:"Claim 22316691.",
+    body:[["Oct 7, 2026: visit documented."],["Oct 9, 2026: initial claim sent to Iowa Blue Shield without modifier 96.",true],["Oct 14, 2026: denied, CO-4."]]},
+  policy:{title:"Iowa Blue Shield modifier note", meta:"From past remits and payer bulletins on file.",
+    body:[["Habilitative PT lines need modifier 96. Rehabilitative lines need modifier 97.",true],["Evaluation codes are not part of this requirement in the bulletins on file."]]}
+};
+const STEPS_W = {
+  open:{title:"Reviewing claim 22316691", steps:[["Reading the remittance","Denied Oct 14, CO-4, $0 paid"],["Checking modifiers on each line","No modifier 96 on any line"],["Reviewing the medical record","Plan of care is habilitative"],["Checking the claim history","Sent once, Oct 9"]]},
+  check:{title:"Checking payer requirements", steps:[["Reading Iowa Blue Shield's modifier notes","Evaluation codes are excluded"],["Revising the plan","3 lines, not 4"]]},
+  similar:{title:"Checking similar claims", steps:[["Searching the last 30 days","Iowa Blue Shield, CO-4, no modifier 96"],["Checking each plan of care","23 match, 3 close but different"]]},
+  next:{title:"Reviewing claim 22316702", steps:[["Reading the remittance","Denied Oct 8"],["Checking the referring provider","Missing on both lines"]]}
+};
+const JOURNEY = [
+  ["Opens the claims page",""],["Picks a claim",""],["Watches the agent work","Understand"],["Reads the summary","Understand"],
+  ["Checks the evidence","Understand"],["Questions the agent","Decide"],["Accepts the revised plan","Decide"],["Adds the modifier","Act"],
+  ["Previews the submission","Act"],["Resubmits","Act"],["Sees the pattern","Find a pattern"],["Applies the fix once","Find a pattern"],
+  ["Moves to the next claim",""],["Leaves the page",""]
+];
+
+/* ---------- State ---------- */
+const fresh = () => ({
+  view:"worklist", claim:null, opened:false, read:false, working:null, left:"props", canDo:false, ref:null,
+  evidence:false, asked:false, revised:false, revisedAccepted:false,
+  s1:"open", s2:"locked", s3:"locked", s1edit:false, s1lines:["97110","97112","97140","97161"], notThis:null, couldnt:false,
+  resubmitted:false, hold:"open", similarShown:false, applied:false, batchUndone:false, resubUndone:false, picked:{verified:true, check:false},
+  nextOffered:false, nextOpened:false, nextRead:false, left2:false, finished:false, thumbs:null, trackerOpen:false,
+  log:[]
+});
+let S = fresh();
+
+/* ---------- Helpers ---------- */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const money = n => "$" + n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l2.2 6.3L20 10l-5.8 1.7L12 18l-2.2-6.3L4 10l5.8-1.7z"/></svg>`;
+const AV = `<div class="avatar"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--accent)" d="M12 2l2.2 6.3L20 10l-5.8 1.7L12 18l-2.2-6.3L4 10l5.8-1.7z"/></svg></div>`;
+const mAgent = (h, how) => `<div class="cmsg">${AV}<div class="cbody"><div class="who"><b>Athelas Agent</b></div>${h}${how?`<div><button class="how" data-src="${how}" type="button">How I got here</button></div>`:""}</div></div>`;
+const mUser = t => `<div class="cmsg user"><div class="cbody"><div class="who"><b>Elliot</b></div><div class="bubble">${esc(t)}</div></div></div>`;
+const ev = (id, label) => `<button class="ev" data-src="${id}" type="button">${label || SOURCES[id].title}</button>`;
+const fixLines = () => S.revised && S.revisedAccepted ? ["97110","97112","97140"] : S.s1lines;
+function workHTML(key, live){
+  const w = STEPS_W[key];
+  if (!live) return `<button class="wcollapsed" data-expand="${key}" type="button"><span class="wcheck"></span>${({open:"Reviewed 4 sources",check:"Checked Iowa Blue Shield's requirements",similar:"Checked 26 similar claims",next:"Reviewed 2 sources"})[key]}</button>`;
+  return `<div class="work" id="workBlock" style="margin-bottom:10px"><div class="work-title">${w.title}</div>${w.steps.map(([a,b])=>`<div class="wstep"><span class="wcheck"></span><span><span>${a}</span><span class="wdetail">${b}</span></span></div>`).join("")}</div>`;
+}
+
+/* ---------- Journey progress ---------- */
+function journeyDone(){
+  return [
+    true, S.opened, S.read, S.read, S.evidence, S.asked, S.revisedAccepted,
+    S.s1==="accepted", S.s2==="accepted", S.resubmitted, S.similarShown, S.applied,
+    S.nextOpened, S.finished
+  ];
+}
+function renderTracker(){
+  const d = journeyDone();
+  const cur = d.findIndex(x=>!x);
+  const n = cur===-1 ? JOURNEY.length : cur;
+  const pct = d.filter(Boolean).length/JOURNEY.length*100;
+  $("#tracker").innerHTML = `<button class="tr-pill" data-tracker type="button" aria-expanded="${S.trackerOpen}" aria-label="Walkthrough progress"><span class="ring" style="--p:${pct}%"></span><span>${cur===-1?"Walkthrough complete":`Step ${n+1} of ${JOURNEY.length}: ${JOURNEY[n][0]}`}</span></button>
+    ${S.trackerOpen?`<div class="tr-pop"><div class="k">THE BILLER'S STEPS</div><ol class="tr-list">${JOURNEY.map(([t,l],i)=>`<li class="${d[i]?"done":""} ${i===n?"cur":""}"><span class="m">${d[i]?"✓":i+1}</span>${t}<span class="loop">${l}</span></li>`).join("")}</ol></div>`:""}`;
+}
+/* ---------- Top ---------- */
+function renderTop(){
+  $("#crumbs").innerHTML = S.view==="worklist" ? `<b>Claims</b>` : `<button data-goto="worklist" type="button">Claims</button><span>/</span><b>${S.claim}</b>`;
+  $("#aiBtn").classList.toggle("working", !!S.working);
+}
+
+/* ---------- Worklist ---------- */
+function worklistHTML(){
+  const resolved = id => {
+    if (id==="22316691" && S.resubmitted && !S.resubUndone) return `<span class="pill wait">Resubmitted</span>`;
+    const w = WORKLIST.find(x=>x.id===id);
+    if (w.similar && S.applied && !S.batchUndone) return `<span class="pill ok">Fix applied</span>`;
+    return `<span class="pill red">Denied</span>`;
+  };
+  const count = (S.resubmitted && !S.resubUndone ? 1 : 0) + (S.applied && !S.batchUndone ? 18 : 0);
+  return `<section class="wl" aria-label="Worklist">
+    <div class="wl-head"><h1>My worklist</h1><span class="muted small">Sorted by your priority: oldest first</span></div>
+    ${count?`<div class="banner">${count} claims resolved today from ${S.applied?"one investigation":"your work so far"}.</div>`:""}
+    <div class="wl-scroll"><table><thead><tr><th>Claim</th><th>Patient</th><th>Payer</th><th>Reason</th><th class="r">Amount</th><th>Age</th><th>Status</th></tr></thead><tbody>
+    ${WORKLIST.map(w=>`<tr class="click ${count && (resolved(w.id).includes("ok")||resolved(w.id).includes("wait"))?"dimrow":""}" data-open="${w.id}" tabindex="0"><td class="num"><b>${w.id}</b></td><td>${w.patient}</td><td>${w.payer}</td><td>${w.reason}</td><td class="r num">${money(w.amt)}</td><td class="muted">${w.age}</td><td>${resolved(w.id)}</td></tr>`).join("")}
+    </tbody></table><div class="muted small" style="padding:10px 18px">And 31 more claims in your worklist.</div></div></section>`;
+}
+
+/* ---------- Left panel ---------- */
+function statusChip(){
+  if (S.claim==="22316702") return `<span class="chipv red">Denied</span>`;
+  if (S.resubmitted && !S.resubUndone) return `<span class="chipv wait">Resubmitted</span>`;
+  return `<span class="chipv red">Denied, needs review</span>`;
+}
+function stageChip(){
+  if (S.claim==="22316691" && S.resubmitted && !S.resubUndone) return `<span class="chipv stage">Waiting on Iowa Blue Shield</span>`;
+  return `<span class="chipv stage">Payer 1</span>`;
+}
+function leftHTML(){
+  if (S.claim==="22316702") return `<aside class="panel"><div class="p-head"><b>Claim 22316702</b></div><div class="p-body">
+    <div class="sec">Properties</div><div class="pgrid">
+    <div><div class="pk">Status</div><span class="chipv red">Denied</span></div><div><div class="pk">Stage</div><span class="chipv stage">Payer 1</span></div>
+    <div><div class="pk">Assignee</div><span class="chipv person">Elliot</span></div><div><div class="pk">Payer</div><span class="chipv">Prairie Health Plan</span></div>
+    <div><div class="pk">Patient</div><span class="chipv">Ben Ward</span></div><div><div class="pk">Charges</div><span class="chipv">$145.20</span></div></div></div></aside>`;
+  if (S.left!=="props"){
+    if (S.left==="details") return `<aside class="panel"><div class="p-head"><b>Claim ${CLAIM.id}</b></div><div class="p-body doc">
+      <button class="back" data-left="props" type="button">Back to properties</button>
+      <h3>Claim details</h3><div class="meta">${CLAIM.practice}</div>
+      <div class="pgrid" style="margin-bottom:14px"><div><div class="pk">Patient</div>${CLAIM.patient}</div><div><div class="pk">Date of birth</div>${CLAIM.dob}</div>
+      <div><div class="pk">Payer</div>${CLAIM.payer}</div><div><div class="pk">Member ID</div>${CLAIM.member}</div><div><div class="pk">Date of service</div>${CLAIM.dos}</div><div><div class="pk">Total charges</div>${money(CLAIM.billed)}</div></div>
+      <table class="lines"><thead><tr><th>Code</th><th>Modifiers</th><th class="r">Charge</th></tr></thead><tbody>
+      ${LINES.map(([c,d,a])=>{ const has = S.s1==="accepted" && fixLines().includes(c) && !S.resubUndone;
+        return `<tr class="${has?"hl":""}"><td><b>${c}</b><div class="muted" style="font-size:12px">${d}</div></td><td>GP${has?`, 96 <span class="aimark">${STAR}Confirmed by Elliot</span>`:""}</td><td class="r num">${money(a)}</td></tr>`; }).join("")}
+      </tbody></table></div></aside>`;
+    const s = SOURCES[S.left];
+    return `<aside class="panel"><div class="p-head"><b>Claim ${CLAIM.id}</b></div><div class="p-body doc">
+      <button class="back" data-left="props" type="button">Back to properties</button>
+      <h3>${s.title}</h3><div class="meta">${s.meta}</div>${s.body.map(([t,h])=>`<p class="${h?"hl":""}">${esc(t)}</p>`).join("")}
+      <button class="btn" data-ref="${S.left}" type="button" style="margin-top:6px">Add to chat</button></div></aside>`;
+  }
+  const act = [["","Visit documented","Oct 7"],["","Initial claim sent","Oct 9"],["","Denied, CO-4","Oct 14"]];
+  if (S.s1==="accepted" && !S.resubUndone) act.push(["ai","Modifier 96 added. Proposed by Athelas Agent, accepted by Elliot","Today"]);
+  if (S.resubmitted && !S.resubUndone) act.push(["ai","Resubmitted by Elliot","Today"]);
+  return `<aside class="panel" aria-label="Claim properties"><div class="p-head"><b>Claim ${CLAIM.id}</b></div><div class="p-body">
+    <div class="sec">Properties</div>
+    <div class="pgrid">
+      <div><div class="pk">Status</div>${statusChip()}</div><div><div class="pk">Stage</div>${stageChip()}</div>
+      <div><div class="pk">Assignee</div><span class="chipv person">Elliot</span></div><div><div class="pk">Updated on</div><span class="chipv">${S.resubmitted&&!S.resubUndone?"Today":"10/14/2026"}</span></div>
+      <div><div class="pk">Patient</div><span class="chipv">${CLAIM.patient}</span></div><div><div class="pk">Date of service</div><span class="chipv">${CLAIM.dos}</span></div>
+      <div><div class="pk">Charges</div><span class="chipv">${money(CLAIM.billed)}</span></div><div><div class="pk">Paid</div><span class="chipv">$0.00</span></div>
+      <div style="grid-column:1/-1"><div class="pk">Submitted insurances</div><span class="chipv">Primary: Iowa Blue Shield</span></div>
+    </div>
+    <div class="sep"></div><div class="sec">Sources</div>
+    ${[["details","Claim details"],["record","Medical record"],["remit","Remittance"],["history","Claim history"]].map(([k,l])=>`<button class="src" data-left="${k}" type="button"><span class="ico"></span>${l}</button>`).join("")}
+    <div class="sep"></div><div class="sec">Activity</div>
+    ${act.map(([c,t,d])=>`<div class="act-item"><span class="d ${c}"></span><div><div>${t}</div><div class="t">${d}</div></div></div>`).join("")}
+  </div></aside>`;
+}
+
+/* ---------- Thread pieces ---------- */
+function summaryHTML(){
+  return mAgent(`<div class="card sum">
+      <h4>Where things stand</h4>
+      <p>Iowa Blue Shield denied this claim. It billed four PT lines for $386.00 on Oct 7, and nothing has been paid. The payer requires modifier 96 on habilitative physical therapy, and the claim went out without it.</p>
+      <div class="evs">${ev("remit","Denial: CO-4")}${ev("details","Field at fault: modifiers")}${ev("history","Sent Oct 9 without 96")}${ev("record","Plan of care: habilitative")}</div>
+      <h4>What to do next</h4>
+      <p>Add modifier 96 to the lines, preview the corrected claim, and resubmit to Iowa Blue Shield.</p>
+      <div class="thumbs"><button data-thumb="up" type="button" aria-pressed="${S.thumbs==="up"}" aria-label="Helpful">Helpful</button><button data-thumb="down" type="button" aria-pressed="${S.thumbs==="down"}" aria-label="Not helpful">Not helpful</button></div>
+      ${planHTML()}
+    </div>`, "remit");
+}
+function stepState(n){ return S["s"+n]; }
+function planHTML(){
+  const lines = fixLines();
+  const cur = S.s1!=="accepted" ? 1 : S.s2!=="accepted" ? 2 : S.s3!=="accepted" ? 3 : 4;
+  const st = (n, title, why, body, actions) => {
+    const state = n===4 ? (S.resubmitted && !S.resubUndone ? "open" : "locked") : stepState(n);
+    const done = state==="accepted";
+    return `<div class="pstep ${done?"done":""} ${state==="locked"?"locked":""} ${cur===n&&state!=="locked"?"current":""}"><span class="no">${n}</span><div>
+      <h5>${title}</h5><p class="why">${why}</p>${body||""}
+      ${done?`<div class="accepted" style="margin-top:8px">Accepted by Elliot</div>`:state!=="locked"&&actions?actions:""}</div></div>`;
+  };
+  const s1actions = S.s1edit
+    ? `<div class="editlines">${LINES.map(([c,d])=>`<label><input type="checkbox" data-editline="${c}" ${S.s1lines.includes(c)?"checked":""}/>${c}, ${d}</label>`).join("")}</div><div class="pbtns"><button class="btn primary" data-act="s1save" type="button">Save lines</button><button class="btn ghost" data-act="s1cancel" type="button">Cancel</button></div>`
+    : S.notThis===1
+    ? `<div class="reasons">${["Wrong fix","Wrong lines","Need more info","Other"].map(r=>`<button data-reason="${r}" type="button">${r}</button>`).join("")}</div>`
+    : `<div class="pbtns"><button class="btn primary" data-act="s1accept" type="button">Accept</button><button class="btn" data-act="s1edit" type="button">Edit</button><button class="btn ghost" data-act="s1not" type="button">Not this</button><button class="btn ghost" data-act="s1couldnt" type="button">Couldn't confirm</button></div>`;
+  return `<div class="plan-title"><b>Suggested plan</b><span class="muted small">Steps unlock in order</span></div>
+    ${st(1, `Add modifier 96 to ${lines.length} line${lines.length===1?"":"s"} ${S.revised&&S.revisedAccepted?`<span class="revised">Revised after Elliot's question</span>`:""}`,
+      "The plan of care is habilitative, and Iowa Blue Shield requires 96 on these lines.",
+      `<div class="chg">What will change: ${lines.join(", ")} gain modifier 96</div> <button class="how" data-left="record" type="button" style="margin-left:8px">View medical record</button>`, s1actions)}
+    ${st(2, "Preview the corrected claim", "Check the changed lines before anything is sent.",
+      S.s2!=="locked" ? `<table class="diff"><tr><th>Line</th><th>Before</th><th>After</th></tr>${LINES.map(([c])=>`<tr><td>${c}</td><td>GP</td><td>GP${lines.includes(c)?` <span class="new">96</span>`:""}</td></tr>`).join("")}</table>` : "",
+      `<div class="pbtns"><button class="btn primary" data-act="s2accept" type="button">Looks right</button><button class="btn" data-act="s2back" type="button">Go back to step 1</button></div>`)}
+    ${st(3, "Resubmit to Iowa Blue Shield", "Sent as a corrected claim. You'll have a short hold to undo.", "",
+      `<div class="pbtns"><button class="btn primary" data-act="s3accept" type="button">Resubmit</button></div>`)}
+    ${st(4, "Waiting on Iowa Blue Shield", "This plan stays open until the claim is paid, not just resubmitted.", "")}`;
+}
+function revisionHTML(){
+  return mAgent(`<p>About the 4 lines: you're right to check. 97161 is an evaluation, and Iowa Blue Shield doesn't require modifier 96 on evaluation codes. Only the three treatment lines need it.</p>
+    <div class="card"><b>Revised step 1</b><div class="chg">Before: 97110, 97112, 97140, 97161</div><br><div class="chg" style="background:var(--ok-soft);color:var(--ok)">After: 97110, 97112, 97140</div>
+    <div class="pbtns">${S.revisedAccepted?`<span class="accepted">Revised plan accepted by Elliot</span>`:S.s1==="accepted"?`<span class="muted small">Step 1 was already accepted</span>`:`<button class="btn primary" data-act="revAccept" type="button">Accept revised plan</button><button class="btn" data-act="revKeep" type="button">Keep original</button>`}</div></div>`, "policy");
+}
+function similarHTML(){
+  const verified = S.picked.verified, check = S.picked.check;
+  const n = (verified?18:0) + (check?5:0), amt = (verified?7420:0) + (check?2060:0);
+  const applied = S.applied && !S.batchUndone;
+  return mAgent(`<p><b>23 other claims have the same cause.</b> Iowa Blue Shield denied them for the missing modifier in the last 30 days, worth $9,480.</p>
+    <div class="groups">
+      <label class="grp"><input type="checkbox" data-grp="verified" ${verified?"checked":""} ${applied?"disabled":""}/><span><b>Fix verified, 18 claims, $7,420</b><span class="muted small">Habilitative plan of care confirmed in each note.</span></span></label>
+      <label class="grp"><input type="checkbox" data-grp="check" ${check?"checked":""} ${applied?"disabled":""}/><span><b>Needs a check, 5 claims, $2,060</b><span class="muted small">The note doesn't say habilitative or rehabilitative.</span></span></label>
+    </div>
+    <div class="muted small" style="font-weight:600">Left out, close but not the same cause</div>
+    <ul class="near">
+      <li><b>22316590</b>: has a modifier, but it's 97, the wrong one.</li>
+      <li><b>22316611</b>: Wellmark, which uses a different modifier rule.</li>
+      <li><b>22316648</b>: plan of care is rehabilitative, not habilitative.</li>
+    </ul>
+    <div class="pbtns">${applied?`<span class="accepted">Applied once by Elliot to ${n} claims</span>`:`<button class="btn primary" data-act="apply" type="button" ${n?"":"disabled"}>Apply this fix once to ${n} claims, ${money(amt)}</button>`}</div>
+    <p class="muted small" style="margin:10px 0 0">This applies the fix to these claims only. It doesn't create a rule or touch claims that arrive later.</p>`, "policy");
+}
+function nextCardHTML(){
+  return mAgent(`<p>This claim is done for now. Want the next claim in your queue?</p>
+    <div class="card nextc"><div><b>Claim 22316702</b> <span class="pill red">Denied</span><div class="muted small">Prairie Health Plan, $145.20. The referring provider is missing.</div></div>
+    <div class="btns">${S.nextOpened?`<span class="muted small">Opened</span>`:`<button class="btn primary" data-act="loadNext" type="button">Load next claim</button><button class="btn" data-act="stay" type="button">Stay here</button>`}</div></div>`);
+}
+function holdLine(kind){
+  const open = S.hold==="open";
+  if (kind==="resub"){
+    if (S.resubUndone) return `<div class="cevent">Resubmission undone by Elliot. The claim is back to denied.</div>`;
+    return `<div class="cevent">Resubmitted to Iowa Blue Shield by Elliot. ${open?`On hold until 4:00 PM. <button class="undo" data-act="undoResub" type="button">Undo</button>`:`Hold ended. Sent to Iowa Blue Shield at 4:00 PM.`}</div>`;
+  }
+  if (S.batchUndone) return `<div class="cevent">Fix undone by Elliot on all 18 claims.</div>`;
+  return `<div class="cevent">Fix applied by Elliot with Athelas Agent to ${(S.picked.verified?18:0)+(S.picked.check?5:0)} claims, from claim 22316691. ${open?`On hold until 4:00 PM. <button class="undo" data-act="undoBatch" type="button">Undo</button>`:`Hold ended. ${(S.picked.verified?18:0)+(S.picked.check?5:0)} claims sent.`}</div>`;
+}
+function logHTML(){
+  return S.log.map(e=>{
+    if (e.k==="work") return mAgent(workHTML(e.key, S.working===e.key && e.live));
+    if (e.k==="summary") return summaryHTML();
+    if (e.k==="user") return mUser(e.text);
+    if (e.k==="agent") return mAgent(e.html, e.how);
+    if (e.k==="event") return `<div class="cevent">${e.html}</div>`;
+    if (e.k==="revision") return revisionHTML();
+    if (e.k==="resub") return holdLine("resub");
+    if (e.k==="similar") return similarHTML();
+    if (e.k==="batch") return holdLine("batch");
+    if (e.k==="next") return nextCardHTML();
+    return "";
+  }).join("");
+}
+function statusText(){
+  if (S.working==="open") return "Reviewing claim 22316691";
+  if (S.working==="check") return "Checking payer requirements";
+  if (S.working==="similar") return "Checking similar claims";
+  if (S.working==="next") return "Reviewing claim 22316702";
+  if (S.claim==="22316702") return "Waiting for you";
+  if (S.applied && !S.batchUndone) return "Applied the fix to 18 claims";
+  if (S.resubmitted && !S.resubUndone) return "Waiting on Iowa Blue Shield";
+  return "Waiting for your decision";
+}
+function threadHTML(){
+  const chips = S.claim==="22316702" ? ["Back to my worklist"] : ["Are you sure all four lines need it?","Why modifier 96?","Has this happened before?","Prep a payer call"];
+  return `<section class="panel convo" aria-label="Athelas Agent">
+    <div class="c-top"><div class="agent-id">${AV}<div><div class="ah-name">Athelas Agent</div><div class="ah-status">${S.working?`<span class="dot-work"></span>`:`<span class="dot-live"></span>`}<span aria-live="polite">${statusText()}</span></div></div></div>
+      <button class="cando-btn" data-cando type="button" aria-expanded="${S.canDo}">What I can do</button></div>
+    ${S.canDo?`<div class="cando">I read the claim, submissions, remittances, and medical record. I suggest changes. You decide. I never change the claim or submit without your Accept.</div>`:""}
+    <div class="thread" id="thread"><div class="inner">${logHTML()}</div></div>
+    <div class="composer"><div class="inner">
+      <div class="chips">${chips.map(c=>`<button class="chip" data-chip="${esc(c)}" type="button">${esc(c)}</button>`).join("")}</div>
+      ${S.ref?`<div class="refchip">Reference: ${SOURCES[S.ref].title}<button data-unref type="button" aria-label="Remove reference">&times;</button></div>`:""}
+      <form class="input-row" data-ask autocomplete="off"><input aria-label="Ask Athelas Agent about this claim" placeholder="Ask Athelas Agent about this claim" />
+        <button class="send" type="submit" aria-label="Send"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4l7 7-1.4 1.4L13 7.8V20h-2V7.8l-4.6 4.6L5 11z"/></svg></button></form>
+      <div class="helper">Athelas Agent suggests. You decide.</div>
+    </div></div></section>`;
+}
+
+/* ---------- Render ---------- */
+function render(opts={}){
+  renderTop(); renderTracker();
+  const prev = $("#thread") ? $("#thread").scrollTop : 0;
+  $("#main").innerHTML = S.view==="worklist" ? worklistHTML() : `<div class="claim">${leftHTML()}${threadHTML()}</div>`;
+  const t = $("#thread");
+  if (t) t.scrollTop = opts.keep ? prev : t.scrollHeight;
+  document.querySelectorAll(".ah-status .dot-live").forEach(()=>{});
+}
+let timer = null;
+function work(key, done, ms){
+  clearTimeout(timer);
+  const entry = {k:"work", key, live:true};
+  S.log.push(entry); S.working = key; render();
+  const n = STEPS_W[key].steps.length; let i = 0;
+  const step = () => {
+    document.querySelectorAll("#workBlock .wstep").forEach((el,k)=>{ el.classList.toggle("done",k<i); el.classList.toggle("active",k===i); });
+    if (i>n){ S.working = null; entry.live = false; done(); return; }
+    i++; timer = setTimeout(step, reduced ? 60 : (i>n ? 450 : (ms||1200)));
+  };
+  step();
+}
+
+/* ---------- Actions ---------- */
+function openClaim(id){
+  if (id==="22316702" && !S.resubmitted){ S.claim = id; S.view = "claim"; S.log = [{k:"agent", html:`<p>This prototype walks through claim 22316691. Open that one to start.</p>`}]; render(); return; }
+  if (id!=="22316691" && id!=="22316702"){ return; }
+  S.view = "claim"; S.claim = id; S.left = "props"; S.opened = true;
+  if (id==="22316691" && !S.read){ work("open", () => { S.read = true; S.log.push({k:"summary"}); render(); }); return; }
+  render();
+}
+function afterResubmit(){
+  S.log.push({k:"resub"});
+  render();
+  setTimeout(() => work("similar", () => { S.similarShown = true; S.log.push({k:"similar"}); render(); }), reduced?0:700);
+}
+function chat(text){
+  const t = text.trim(); if (!t) return;
+  if (S.working) return;
+  const q = t.toLowerCase();
+  if (q.includes("back to my worklist")){ finish(); return; }
+  S.log.push({k:"user", text:t});
+  const ref = S.ref; S.ref = null;
+  if (q.includes("sure") || q.includes("four") || q.includes("all 4") || q.includes("all lines")){
+    S.asked = true;
+    if (S.revised){ S.log.push({k:"agent", html:`<p>Yes, I checked: only 97110, 97112, and 97140 need it. See the revised step above.</p>`}); render(); return; }
+    work("check", () => { S.revised = true; S.log.push({k:"revision"}); render(); });
+    return;
+  }
+  let html, how;
+  if (ref) { html = `<p>About the ${SOURCES[ref].title.toLowerCase()}: ${ref==="record"?"the plan of care is habilitative, which is why modifier 96 applies.":ref==="remit"?"CO-4 means a required modifier is missing. Nothing was paid.":ref==="history"?"the claim was sent once, on Oct 9, without modifier 96.":"these are the lines I'd change."}</p>`; how = ref; }
+  else if (q.includes("96") || q.includes("why")) { html = `<p>Modifier 96 marks habilitative care, which builds skills a patient never had. Modifier 97 marks rehabilitative care, which restores lost skills. Alex's plan of care is habilitative.</p>`; how = "record"; }
+  else if (q.includes("before") || q.includes("similar") || q.includes("other claims")) html = S.similarShown ? `<p>Yes. The 23 claims above have the same cause.</p>` : `<p>Yes, I see others with the same cause. Let's fix this one first, then I'll show you the rest so you can apply the same fix.</p>`;
+  else if (q.includes("paid")) { html = `<p>Nothing has been paid. The full $386.00 is open.</p>`; how = "remit"; }
+  else if (q.includes("call") || q.includes("phone")) html = `<p>Here's what you'll need for the call:</p><div class="card callprep"><span>Payer</span><span>Iowa Blue Shield, provider line</span><span>Claim</span><span>22316691</span><span>Member ID</span><span>IBS10001</span><span>Date of service</span><span>Oct 7, 2026</span><span>Denial</span><span>CO-4</span><span>Ask</span><span>Is modifier 96 required on 97161 for this plan?</span></div>`;
+  else if (q.includes("policy")) html = `<p>I don't have Iowa Blue Shield's full policy on file, so I won't guess beyond what's in their bulletins. If you want certainty, I can add a step to confirm with them.</p>`;
+  else html = `<p>I can help with this claim: why it was denied, what a code means, what will change, or similar claims.</p>`;
+  S.log.push({k:"agent", html, how});
+  render();
+}
+function finish(){
+  S.finished = true; S.view = "worklist"; S.claim = null; render();
+}
+
+document.addEventListener("click", e => {
+  if (S.trackerOpen && !e.target.closest("#tracker")){ S.trackerOpen = false; renderTracker(); }
+  const row = e.target.closest("tr[data-open]");
+  if (row){ openClaim(row.dataset.open); return; }
+  const el = e.target.closest("button"); if (!el) return;
+  if (el.dataset.goto==="worklist"){ if (S.claim==="22316702") S.finished = true; S.view = "worklist"; S.claim = null; render(); return; }
+  if (el.dataset.left){ S.left = el.dataset.left; if (el.dataset.left==="record" || el.dataset.left==="remit" || el.dataset.left==="details" || el.dataset.left==="history") S.evidence = true; render({keep:true}); return; }
+  if (el.dataset.src){ S.left = el.dataset.src==="policy" ? "props" : el.dataset.src; if (el.dataset.src==="policy"){ S.left = "policy"; } S.evidence = true; render({keep:true}); return; }
+  if (el.dataset.ref){ S.ref = el.dataset.ref; render({keep:true}); $("form[data-ask] input").focus(); return; }
+  if (el.hasAttribute("data-unref")){ S.ref = null; render({keep:true}); return; }
+  if (el.hasAttribute("data-cando")){ S.canDo = !S.canDo; render({keep:true}); return; }
+  if (el.dataset.thumb){ S.thumbs = el.dataset.thumb; render({keep:true}); return; }
+  if (el.dataset.chip){ chat(el.dataset.chip); return; }
+  if (el.hasAttribute("data-tracker")){ S.trackerOpen = !S.trackerOpen; renderTracker(); return; }
+  if (el.dataset.reason){ S.notThis = null; S.log.push({k:"event", html:`Feedback from Elliot: "${el.dataset.reason}". Sent to Athelas Agent.`}); S.log.push({k:"agent", html:`<p>Thanks. Tell me what you'd change, or edit the step and I'll use your version.</p>`}); render(); return; }
+  const a = el.dataset.act;
+  if (a){
+    if (a==="s1accept"){ S.s1 = "accepted"; S.s2 = "open"; S.log.push({k:"event", html:`Step 1 accepted by Elliot. Modifier 96 added to ${fixLines().join(", ")}.`}); render({keep:true}); return; }
+    if (a==="s1edit"){ S.s1edit = true; render({keep:true}); return; }
+    if (a==="s1cancel"){ S.s1edit = false; render({keep:true}); return; }
+    if (a==="s1save"){ S.s1lines = [...document.querySelectorAll("[data-editline]:checked")].map(x=>x.dataset.editline); if (!S.s1lines.length) S.s1lines = ["97110"]; S.s1edit = false; S.revisedAccepted = false; S.log.push({k:"event", html:`Step 1 edited by Elliot: ${S.s1lines.join(", ")}.`}); render({keep:true}); return; }
+    if (a==="s1not"){ S.notThis = 1; render({keep:true}); return; }
+    if (a==="s1couldnt"){ S.couldnt = true; S.log.push({k:"event", html:"Elliot couldn't confirm the plan of care. Step 1 stays open."}); S.log.push({k:"agent", html:`<p>No problem. I'll keep this claim open with a note. You can come back to it, or move on.</p><div class="btns"><button class="btn" data-act="skip" type="button">Skip to next claim</button></div>`}); render(); return; }
+    if (a==="skip"){ S.log.push({k:"next"}); S.nextOffered = true; render(); return; }
+    if (a==="revAccept"){ S.revisedAccepted = true; S.s1lines = ["97110","97112","97140"]; S.log.push({k:"event", html:"Revised plan accepted by Elliot. Step 1 now covers 3 lines."}); render({keep:true}); return; }
+    if (a==="revKeep"){ S.revisedAccepted = false; S.log.push({k:"event", html:"Elliot kept the original plan, 4 lines."}); S.asked = true; render({keep:true}); return; }
+    if (a==="s2accept"){ S.s2 = "accepted"; S.s3 = "open"; S.log.push({k:"event", html:"Preview checked by Elliot."}); render({keep:true}); return; }
+    if (a==="s2back"){ S.s1 = "open"; S.s2 = "locked"; render({keep:true}); return; }
+    if (a==="s3accept"){ S.s3 = "accepted"; S.resubmitted = true; S.left = "props"; S.resubUndone = false; afterResubmit(); return; }
+    if (a==="undoResub"){ S.resubUndone = true; S.s3 = "open"; S.resubmitted = false; render({keep:true}); return; }
+    if (a==="apply"){ S.applied = true; S.batchUndone = false; S.log.push({k:"batch"}); S.log.push({k:"next"}); S.nextOffered = true; render(); return; }
+    if (a==="undoBatch"){ S.batchUndone = true; S.applied = false; render({keep:true}); return; }
+    if (a==="loadNext"){ S.nextOpened = true; S.claim = "22316702"; S.left = "props"; S.log = []; work("next", () => { S.nextRead = true; S.log.push({k:"agent", html:`<div class="card sum"><h4>Where things stand</h4><p>Prairie Health Plan denied two therapy lines on Oct 8, 2026. The referring provider is missing on both. The referral from Dr. Kim is on file, so I can add it.</p><div class="evs"><button class="ev" type="button">Denial: CO-16</button><button class="ev" type="button">Referral on file</button></div></div><p class="muted small" style="margin-top:10px">Prototype ends here. The same loop repeats for every claim.</p><div class="btns"><button class="btn primary" data-act="finish" type="button">Back to my worklist</button></div>`}); render(); }); return; }
+    if (a==="stay"){ S.log.push({k:"agent", html:`<p>Sure. The next claim will be at the top of your worklist when you're ready.</p><div class="btns"><button class="btn" data-act="finish" type="button">Back to my worklist</button></div>`}); render(); return; }
+    if (a==="finish"){ finish(); return; }
+  }
+  if (el.dataset.grp){ return; }
+  if (el.id==="protoBtn"){ const p=$("#proto"); const on=!p.classList.contains("show"); p.classList.toggle("show",on); el.setAttribute("aria-expanded",on); return; }
+  if (el.hasAttribute("data-hold")){ S.hold = S.hold==="open" ? "ended" : "open"; el.textContent = "Hold: " + (S.hold==="open" ? "still open" : "ended"); render({keep:true}); return; }
+  if (el.dataset.jump) jump(el.dataset.jump);
+  if (el.id==="aiBtn"){ const i = document.querySelector("form[data-ask] input"); if (i) i.focus(); }
+});
+document.addEventListener("change", e => {
+  if (e.target.dataset.grp){ S.picked[e.target.dataset.grp] = e.target.checked; render({keep:true}); }
+});
+document.addEventListener("keydown", e => {
+  const row = e.target.closest && e.target.closest("tr[data-open]");
+  if (row && (e.key==="Enter" || e.key===" ")){ e.preventDefault(); openClaim(row.dataset.open); }
+});
+document.addEventListener("submit", e => {
+  const f = e.target.closest("form[data-ask]"); if (!f) return;
+  e.preventDefault(); const i = f.querySelector("input"); const v = i.value; i.value = ""; chat(v);
+});
+
+function jump(j){
+  clearTimeout(timer);
+  const hold = S.hold, tr = S.trackerOpen;
+  S = fresh(); S.hold = hold; S.trackerOpen = tr;
+  if (j==="reset"){ render(); return; }
+  S.view = "claim"; S.claim = "22316691"; S.read = true; S.opened = true;
+  S.log = [{k:"work", key:"open", live:false}, {k:"summary"}];
+  if (j==="summary"){ render(); $("#thread").scrollTop = 0; return; }
+  S.evidence = true; S.asked = true; S.revised = true; S.revisedAccepted = true; S.s1lines = ["97110","97112","97140"];
+  S.log.push({k:"user", text:"Are you sure all four lines need it?"}, {k:"work", key:"check", live:false}, {k:"revision"}, {k:"event", html:"Revised plan accepted by Elliot. Step 1 now covers 3 lines."});
+  if (j==="revised"){ render(); return; }
+  S.s1 = "accepted"; S.s2 = "accepted"; S.s3 = "accepted"; S.resubmitted = true;
+  S.log.push({k:"event", html:"Step 1 accepted by Elliot. Modifier 96 added to 97110, 97112, 97140."}, {k:"event", html:"Preview checked by Elliot."}, {k:"resub"});
+  if (j==="resubmitted"){ render(); return; }
+  S.similarShown = true; S.log.push({k:"work", key:"similar", live:false}, {k:"similar"});
+  if (j==="pattern"){ render(); return; }
+  S.applied = true; S.nextOffered = true; S.log.push({k:"batch"}, {k:"next"});
+  render();
+}
+
+render();
+</script>
+</body>
+</html>
