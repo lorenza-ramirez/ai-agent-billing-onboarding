@@ -3,686 +3,657 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Biller journey, Mild: the agent helps me solve the claim in front of me</title>
+<title>Agentic onboarding: rail and live preview, Mild, Medium, Spicy (DS 3.0)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
+
+/* ===== Design System 3.0 tokens (from Figma: Theme, Value, Type Ladder) ===== */
 :root{
-  color-scheme: light;
-  --bg:#EEF0F3; --surface:#FFFFFF; --surface-2:#F6F7F9;
-  --ink:#1A1D23; --muted:#5D6472; --faint:#8A909C;
-  --line:#E2E5EA; --line-strong:#CDD2DA;
-  --accent:#2F5BEA; --accent-soft:#E9EEFE;
-  --red:#C2362F; --red-soft:#FCEBEA;
-  --ok:#2A7A4B; --ok-soft:#E4F3EA; --warn:#A8660E; --warn-soft:#FBF1E1;
-  --stage:#EFEBFC; --stage-ink:#4C35A8; --ai:#6A4BD1; --ai-soft:#EFEBFC;
-  --shadow:0 1px 2px rgba(20,24,33,.06);
+  --ds-font:"Geist",-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+  --ds-mono:"Geist Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  --ds-shell:#f1f3fe; --ds-base:#ffffff; --ds-1:#fafafa; --ds-2:#f5f5f5; --ds-3:#e5e5e5;
+  --ds-fg1:#1f1f1f; --ds-fg2:#454545; --ds-fg3:#737373;
+  --ds-accent:#1132ee; --ds-accent-hover:#0d28bf; --ds-accent-25:#f1f3fe; --ds-accent-50:#e7eafd; --ds-accent-100:#cfd6fc;
+  --ds-border:rgba(0,0,0,.10); --ds-border-strong:rgba(0,0,0,.20);
+  --ds-success:#228048; --ds-success-bg:rgba(42,153,83,.10);
+  --ds-warning:#9f5617; --ds-warning-bg:rgba(194,112,35,.10);
+  --ds-danger:#b52b2b;  --ds-danger-bg:rgba(181,43,43,.10);
+  --ds-info:#345dbf;    --ds-info-bg:rgba(65,107,207,.10);
+  --ds-teal:#1e756e;    --ds-teal-bg:rgba(36,147,136,.10);
+  --ds-violet:#6545a0;  --ds-violet-bg:rgba(129,88,205,.10);
+  --ds-slate:#323f54;   --ds-slate-bg:rgba(71,85,105,.10);
+  --ds-rd-s:4px; --ds-rd:8px; --ds-rd-l:12px; --ds-rd-xl:16px; --ds-rd-full:100px;
+  --ds-side:208px;
 }
 @media (prefers-color-scheme: dark){
   :root{
-    color-scheme: dark;
-    --bg:#121418; --surface:#1B1E24; --surface-2:#22262D;
-    --ink:#E8EAEE; --muted:#A3A9B5; --faint:#7C8390;
-    --line:#2D323A; --line-strong:#3B414B;
-    --accent:#7D9BFF; --accent-soft:#232C4A;
-    --red:#F08A83; --red-soft:#3A1D1B;
-    --ok:#62C48B; --ok-soft:#183323; --warn:#E0A450; --warn-soft:#3A2C17;
-    --stage:#2A2442; --stage-ink:#C9BCFA; --ai:#A994F5; --ai-soft:#2A2442;
-    --shadow:none;
+    --ds-shell:#111324; --ds-base:#141414; --ds-1:#1f1f1f; --ds-2:#262626; --ds-3:#2b2b2b;
+    --ds-fg1:#e5e5e5; --ds-fg2:#a3a3a3; --ds-fg3:#737373;
+    --ds-accent:#405bf2; --ds-accent-hover:#7084f5; --ds-accent-25:#111324; --ds-accent-50:#121833; --ds-accent-100:#0e1640;
+    --ds-border:rgba(255,255,255,.10); --ds-border-strong:rgba(255,255,255,.20);
+    --ds-success:#41c589; --ds-success-bg:rgba(42,153,83,.20);
+    --ds-warning:#e39751; --ds-warning-bg:rgba(194,112,35,.20);
+    --ds-danger:#d76268;  --ds-danger-bg:rgba(181,43,43,.20);
+    --ds-info:#6e93ed;    --ds-info-bg:rgba(65,107,207,.20);
+    --ds-teal:#64d4c6;    --ds-teal-bg:rgba(36,147,136,.20);
+    --ds-violet:#b5a2eb;  --ds-violet-bg:rgba(129,88,205,.20);
+    --ds-slate:#cbd5e1;   --ds-slate-bg:rgba(71,85,105,.20);
   }
 }
+
 *{box-sizing:border-box}
 html,body{margin:0;height:100%}
-body{font-family:-apple-system,BlinkMacSystemFont,"SF Pro Text","Segoe UI",Roboto,Helvetica,Arial,sans-serif;font-size:14px;line-height:1.5;color:var(--ink);background:var(--bg);-webkit-font-smoothing:antialiased}
-button{font:inherit;color:inherit;cursor:pointer}
-:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:6px}
+body{font-family:var(--ds-font);font-size:14px;line-height:1.5;color:var(--ds-fg1);background:var(--ds-shell);-webkit-font-smoothing:antialiased}
+button,input,textarea{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--ds-accent);outline-offset:2px;border-radius:6px}
 .num{font-variant-numeric:tabular-nums}
-.muted{color:var(--muted)} .small{font-size:13px}
+.muted{color:var(--ds-fg2)} .faint{color:var(--ds-fg3)} .small{font-size:13px}
 
 /* Top bar */
-.topbar{height:52px;display:flex;align-items:center;gap:16px;padding:0 16px}
-.crumbs{display:flex;align-items:center;gap:8px;color:var(--muted)}
-.crumbs b{color:var(--ink);font-weight:600}
-.crumbs button{background:none;border:0;padding:4px 6px;border-radius:6px;color:var(--muted)}
-.crumbs button:hover{background:var(--surface)}
-.search{flex:1;max-width:440px;margin:0 auto;height:34px;border-radius:8px;background:var(--surface-2);border:1px solid var(--line);display:flex;align-items:center;padding:0 12px;color:var(--faint);font-size:13px}
-.ai-btn{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:8px;border:0;background:var(--accent-soft);color:var(--accent);font-weight:600}
-.ai-btn .spin{width:12px;height:12px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;display:none;animation:spin .8s linear infinite}
-.ai-btn.working .spin{display:inline-block}
-.proto-btn{height:34px;padding:0 10px;border-radius:8px;border:1px dashed var(--line-strong);background:none;color:var(--muted);font-size:12px}
+.top{height:56px;display:flex;align-items:center;gap:16px;padding:0 16px}
+.brand{display:flex;align-items:center;gap:8px;font-weight:600;font-size:17px;min-width:250px}
+.brand svg{width:20px;height:20px}
+.brand span{font-weight:500;color:var(--ds-fg2);font-size:14px}
+.hz{margin:0 auto;display:flex;align-items:center;gap:10px}
+.hz-label{font-size:12px;color:var(--ds-fg3)}
+.seg{display:flex;background:var(--ds-base);border:1px solid var(--ds-border);border-radius:var(--ds-rd-full);padding:3px}
+.seg button{border:0;background:none;padding:5px 14px;border-radius:var(--ds-rd-full);font-weight:500;color:var(--ds-fg2)}
+.seg button[aria-pressed="true"]{background:var(--ds-accent);color:#fff}
+.top-r{display:flex;align-items:center;gap:12px;min-width:250px;justify-content:flex-end}
+.golive{font-size:13px;color:var(--ds-fg2)}
+.golive b{color:var(--ds-fg1);font-weight:600}
+.ghost-btn{background:none;border:1px solid var(--ds-border-strong);border-radius:var(--ds-rd-full);height:32px;padding:0 12px;font-weight:500;font-size:13px}
+.ghost-btn:hover{background:var(--ds-2)}
 
-.main{padding:0 12px 12px;height:calc(100vh - 52px)}
+/* Layout: rail, work, preview */
+.app{display:grid;grid-template-columns:292px minmax(0,1fr) 380px;gap:12px;padding:0 12px 12px;height:calc(100vh - 56px)}
+.card{background:var(--ds-base);border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);min-height:0;display:flex;flex-direction:column;overflow:hidden}
+.scroll{overflow:auto;flex:1;min-height:0}
 
-/* Worklist */
-.wl{background:var(--surface);border:1px solid var(--line);border-radius:12px;height:100%;display:flex;flex-direction:column;overflow:hidden}
-.wl-head{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-.wl-head h1{margin:0;font-size:18px}
-.banner{display:flex;align-items:center;gap:10px;padding:10px 18px;background:var(--ok-soft);color:var(--ok);font-weight:500;border-bottom:1px solid var(--line)}
-.wl-scroll{overflow:auto;flex:1}
-table{width:100%;border-collapse:collapse}
-th{font-size:12px;font-weight:600;color:var(--muted);text-align:left;padding:9px 18px;border-bottom:1px solid var(--line);background:var(--surface-2);position:sticky;top:0}
-td{padding:11px 18px;border-bottom:1px solid var(--line)}
-td.r,th.r{text-align:right}
-tr.click{cursor:pointer}
-tr.click:hover td{background:var(--surface-2)}
-tr.dimrow td{color:var(--muted)}
-.pill{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;padding:2px 8px;border-radius:6px;white-space:nowrap}
-.pill.red{background:var(--red-soft);color:var(--red)}
-.pill.ok{background:var(--ok-soft);color:var(--ok)}
-.pill.wait{background:var(--accent-soft);color:var(--accent)}
-.pill.warn{background:var(--warn-soft);color:var(--warn)}
+/* Rail */
+.rail-head{padding:16px 16px 12px;border-bottom:1px solid var(--ds-border)}
+.rail-head .k{font-size:12px;color:var(--ds-fg3);font-weight:500}
+.rail-head b{display:block;font-size:17px;margin-top:2px}
+.rail-head .story{margin-top:10px;font-size:13px;color:var(--ds-fg2);background:var(--ds-accent-25);border-radius:var(--ds-rd);padding:8px 10px}
+.rail-head .story b{display:inline;font-size:13px;color:var(--ds-accent)}
+.steps{list-style:none;margin:0;padding:10px 8px;position:relative}
+.stp{position:relative}
+.stp + .stp::before{content:"";position:absolute;left:23px;top:-12px;height:12px;width:2px;background:var(--ds-border)}
+.stp-btn{display:grid;grid-template-columns:32px 1fr;gap:10px;width:100%;text-align:left;background:none;border:0;border-radius:var(--ds-rd);padding:8px}
+.stp-btn:hover{background:var(--ds-1)}
+.stp.cur .stp-btn{background:var(--ds-accent-25)}
+.dot{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;border:1.5px solid var(--ds-border-strong);background:var(--ds-base);font-size:12px;font-weight:600;color:var(--ds-fg2)}
+.dot.done{background:var(--ds-success);border-color:var(--ds-success);color:#fff}
+.dot.agent{border-color:transparent;background:var(--ds-accent-25) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='60%25'%3E%3Cstop offset='0' stop-color='%231132ee' stop-opacity='.95'/%3E%3Cstop offset='1' stop-color='%237084f5' stop-opacity='.25'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cellipse cx='20' cy='11.5' rx='6.5' ry='9.5' fill='url(%23g)'/%3E%3Cellipse cx='20' cy='28.5' rx='6.5' ry='9.5' fill='url(%23g)'/%3E%3Cellipse cx='11.5' cy='20' rx='9.5' ry='6.5' fill='url(%23g)'/%3E%3Cellipse cx='28.5' cy='20' rx='9.5' ry='6.5' fill='url(%23g)'/%3E%3C/svg%3E") center/70% no-repeat}
+.dot.need{border-color:var(--ds-warning);color:var(--ds-warning);background:var(--ds-warning-bg)}
+.dot svg{width:14px;height:14px}
+.stp-t{font-weight:600;font-size:14px}
+.stp-m{font-size:12px;color:var(--ds-fg2);margin-top:1px}
+.stp-m.need{color:var(--ds-warning);font-weight:500}
+.mix{display:flex;height:4px;border-radius:2px;overflow:hidden;background:var(--ds-2);margin-top:7px}
+.mix span{display:block;height:100%;transition:width .35s ease}
+.stp-x{margin:2px 0 4px 50px;font-size:12px}
+.stp-x button{background:none;border:0;padding:0;color:var(--ds-accent);font-weight:500}
+.legend{display:flex;flex-wrap:wrap;gap:4px 12px;padding:4px 16px 12px;font-size:11px;color:var(--ds-fg2)}
+.legend i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:5px;vertical-align:0}
+.rail-foot{border-top:1px solid var(--ds-border);padding:12px 16px;font-size:12px;color:var(--ds-fg2)}
+.rail-foot button{background:none;border:0;padding:0;color:var(--ds-accent);font-weight:500;font-size:12px}
 
-/* Claim view */
-.claim{display:grid;grid-template-columns:400px 1fr;gap:12px;height:100%}
-.panel{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column;min-height:0}
-.p-head{display:flex;align-items:center;gap:10px;padding:12px 16px;border-bottom:1px solid var(--line)}
-.p-head b{font-size:15px}
-.p-body{overflow:auto;padding:14px 16px 16px;flex:1}
-.sec{font-size:13px;color:var(--muted);font-weight:500;margin:4px 0 10px}
-.pgrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-.pk{font-size:13px;color:var(--muted);margin-bottom:4px}
-.chipv{display:inline-flex;align-items:center;font-size:13px;font-weight:500;padding:4px 10px;border-radius:7px;background:var(--surface-2)}
-.chipv.red{background:var(--red-soft);color:var(--red)}
-.chipv.stage{background:var(--stage);color:var(--stage-ink)}
-.chipv.person{background:var(--ok-soft);color:var(--ok)}
-.chipv.wait{background:var(--accent-soft);color:var(--accent)}
-.sep{border-top:1px solid var(--line);margin:16px 0 12px}
-.src{display:flex;align-items:center;gap:10px;width:100%;background:none;border:0;padding:6px 0;text-align:left}
-.src:hover{color:var(--accent)}
-.src .ico{width:16px;height:16px;flex:none;border:1.5px solid var(--line-strong);border-radius:3px}
-.back{background:none;border:0;color:var(--accent);padding:0;font-weight:500;margin-bottom:12px}
-.doc h3{margin:0 0 2px;font-size:16px}
-.doc .meta{color:var(--muted);font-size:13px;margin-bottom:12px}
-.doc p{margin:0 0 10px}
-.doc .hl{background:var(--accent-soft);box-shadow:inset 3px 0 0 var(--accent);padding:6px 10px;border-radius:4px}
-.lines{width:100%;border-collapse:collapse;font-size:13px}
-.lines th{position:static;background:none;padding:6px 6px;font-size:12px}
-.lines td{padding:7px 6px}
-.lines tr.hl td{background:var(--accent-soft)}
-.aimark{display:inline-flex;align-items:center;gap:4px;font-size:11px;font-weight:600;color:var(--ai);background:var(--ai-soft);padding:1px 6px;border-radius:5px;margin-left:6px;white-space:nowrap}
-.aimark svg{width:10px;height:10px}
-.act-item{display:flex;gap:8px;font-size:13px;padding:5px 0}
-.act-item .d{width:7px;height:7px;border-radius:50%;background:var(--line-strong);margin-top:7px;flex:none}
-.act-item .d.ai{background:var(--ai)}
-.act-item .t{color:var(--faint);font-size:12px}
-
-/* Thread */
-.convo{display:flex;flex-direction:column;min-height:0}
-.c-top{border-bottom:1px solid var(--line);padding:10px 20px;display:flex;align-items:center;gap:12px}
-.agent-id{display:flex;align-items:center;gap:10px}
-.avatar{width:30px;height:30px;border-radius:50%;background:var(--accent-soft);display:grid;place-items:center;flex:none}
-.avatar svg{width:16px;height:16px}
-.ah-name{font-weight:600}
-.tag{font-size:11px;font-weight:600;padding:1px 7px;border-radius:5px;background:var(--surface-2);color:var(--muted);border:1px solid var(--line);margin-left:6px}
-.ah-status{color:var(--muted);font-size:12px;display:flex;align-items:center;gap:6px}
-.dot-live{width:7px;height:7px;border-radius:50%;background:var(--ok)}
-.dot-work{width:10px;height:10px;border-radius:50%;border:2px solid var(--accent);border-right-color:transparent;animation:spin .8s linear infinite}
-.cando-btn{margin-left:auto;background:none;border:0;color:var(--accent);font-size:13px;font-weight:500}
-.cando{margin:10px 20px 0;border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:var(--surface-2);font-size:13px}
-.thread{flex:1;overflow:auto;padding:20px 20px 8px}
-.inner{max-width:800px;margin:0 auto}
-.cmsg{display:flex;gap:12px;margin-bottom:18px}
-.cmsg .cbody{flex:1;min-width:0}
-.cmsg .who{font-size:12px;color:var(--muted);margin-bottom:4px;display:flex;gap:8px;align-items:center}
-.cmsg .who b{color:var(--ink)}
-.cmsg p{margin:0 0 10px;max-width:68ch}
-.cmsg.user{justify-content:flex-end}
-.cmsg.user .cbody{flex:none;max-width:75%;text-align:right}
-.cmsg.user .who{justify-content:flex-end}
-.cmsg.user .bubble{display:inline-block;text-align:left;background:var(--accent-soft);padding:9px 13px;border-radius:12px}
-.cmsg.reveal{animation:rise .35s ease both}
-.cevent{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:13px;margin:-6px 0 16px 42px;flex-wrap:wrap}
-.cevent::before{content:"";width:6px;height:6px;border-radius:50%;background:var(--line-strong);flex:none}
-.cevent .undo{background:none;border:0;color:var(--accent);font-weight:500;padding:0;font-size:13px}
-.how{background:none;border:0;padding:0;color:var(--accent);font-size:12px;margin-top:2px}
-.card{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:14px 16px;box-shadow:var(--shadow)}
-.sum h4{margin:0 0 4px;font-size:13px;color:var(--muted);font-weight:600}
-.sum p{margin:0 0 12px}
-.evs{display:flex;flex-wrap:wrap;gap:6px;margin:-4px 0 12px}
-.ev{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:3px 9px;border-radius:6px;border:1px solid var(--line);background:var(--surface-2)}
-.ev:hover{border-color:var(--accent);color:var(--accent)}
-.ev::before{content:"";width:10px;height:12px;border:1.5px solid currentColor;border-radius:2px;opacity:.6}
-.thumbs{display:flex;gap:6px}
-.thumbs button{background:none;border:1px solid var(--line);border-radius:6px;padding:2px 8px;font-size:12px;color:var(--muted)}
-.thumbs button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent)}
-.plan-title{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:16px 0 8px}
-.plan-title b{font-size:14px}
-.pstep{border:1px solid var(--line);border-radius:10px;padding:12px 14px;margin-bottom:8px;display:grid;grid-template-columns:24px 1fr;gap:10px}
-.pstep .no{width:22px;height:22px;border-radius:50%;border:1.5px solid var(--line-strong);display:grid;place-items:center;font-size:12px;font-weight:600;color:var(--muted)}
-.pstep.done .no{background:var(--ok);border-color:var(--ok);color:transparent;position:relative}
-.pstep.done .no::after{content:"";position:absolute;width:8px;height:4px;border-left:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(-45deg) translate(1px,-1px)}
-.pstep.locked{opacity:.55}
-.pstep.current{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
-.pstep h5{margin:0;font-size:14px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
-.pstep .why{font-size:13px;color:var(--muted);margin:4px 0 0}
-.chg{display:inline-flex;align-items:center;gap:6px;font-size:13px;background:var(--surface-2);border-radius:6px;padding:3px 8px;margin-top:8px}
-.revised{font-size:11px;font-weight:600;color:var(--accent);background:var(--accent-soft);padding:1px 7px;border-radius:5px}
-.accepted{font-size:12px;color:var(--ok);font-weight:600}
-.pbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
-.btn{height:32px;padding:0 13px;border-radius:8px;border:1px solid var(--line-strong);background:var(--surface);font-weight:500;white-space:nowrap}
-.btn:hover{background:var(--surface-2)}
-.btn.primary{background:var(--accent);border-color:var(--accent);color:#fff}
-.btn.primary:hover{filter:brightness(1.05);background:var(--accent)}
-.btn.ghost{border-color:transparent;color:var(--muted)}
-.btn.ghost:hover{background:var(--surface-2)}
+/* Work area */
+.work-head{display:flex;align-items:center;gap:10px;padding:12px 20px;border-bottom:1px solid var(--ds-border)}
+.av{width:28px;height:28px;border-radius:50%;flex:none;background:var(--ds-accent-25) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Cdefs%3E%3CradialGradient id='g' cx='50%25' cy='50%25' r='60%25'%3E%3Cstop offset='0' stop-color='%231132ee' stop-opacity='.95'/%3E%3Cstop offset='1' stop-color='%237084f5' stop-opacity='.25'/%3E%3C/radialGradient%3E%3C/defs%3E%3Cellipse cx='20' cy='11.5' rx='6.5' ry='9.5' fill='url(%23g)'/%3E%3Cellipse cx='20' cy='28.5' rx='6.5' ry='9.5' fill='url(%23g)'/%3E%3Cellipse cx='11.5' cy='20' rx='9.5' ry='6.5' fill='url(%23g)'/%3E%3Cellipse cx='28.5' cy='20' rx='9.5' ry='6.5' fill='url(%23g)'/%3E%3C/svg%3E") center/70% no-repeat}
+.wh-t{font-weight:600}
+.wh-s{font-size:12px;color:var(--ds-fg2);display:flex;align-items:center;gap:6px}
+.live{width:7px;height:7px;border-radius:50%;background:var(--ds-success)}
+.spin{width:10px;height:10px;border-radius:50%;border:2px solid var(--ds-accent);border-right-color:transparent;animation:spin .8s linear infinite;flex:none}
+.work-body{padding:22px 28px 28px}
+.inner{max-width:680px;margin:0 auto}
+.eyebrow{font-size:12px;color:var(--ds-fg3);font-weight:500;margin-bottom:6px;display:flex;justify-content:space-between;gap:10px}
+h1.q{margin:0 0 10px;font-size:24px;font-weight:600;letter-spacing:-.01em;line-height:1.25}
+.why{color:var(--ds-fg2);margin:0 0 14px}
+.src{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:14px;font-size:13px;color:var(--ds-fg2)}
+.tag{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:500;padding:2px 8px;border-radius:var(--ds-rd)}
+.tag.data{background:var(--ds-success-bg);color:var(--ds-success)}
+.tag.def{background:var(--ds-slate-bg);color:var(--ds-slate)}
+.tag.need{background:var(--ds-warning-bg);color:var(--ds-warning)}
+.tag.you{background:var(--ds-accent-50);color:var(--ds-accent)}
+.tag.agent{background:var(--ds-accent-25);color:var(--ds-accent)}
+.tag.sim{background:var(--ds-violet-bg);color:var(--ds-violet)}
+.tag.c{background:var(--ds-info-bg);color:var(--ds-info)} .tag.r{background:var(--ds-danger-bg);color:var(--ds-danger)} .tag.g{background:var(--ds-warning-bg);color:var(--ds-warning)}
+.opt{display:grid;grid-template-columns:auto 1fr;gap:12px;width:100%;text-align:left;border:1px solid var(--ds-border);background:var(--ds-base);border-radius:var(--ds-rd-l);padding:12px 14px;margin-bottom:8px}
+.opt:hover:not(:disabled){border-color:var(--ds-accent)}
+.opt:disabled{cursor:default}
+.opt .r{width:18px;height:18px;border-radius:50%;border:1.5px solid var(--ds-border-strong);margin-top:2px}
+.opt.sel{border-color:var(--ds-accent);background:var(--ds-accent-25)}
+.opt.sel .r{border:5px solid var(--ds-accent)}
+.opt.dim{opacity:.5}
+.opt b{font-weight:600}
+.opt .fx{display:block;font-size:13px;color:var(--ds-fg2);margin-top:2px}
+.opt .fx.warn{color:var(--ds-warning)}
+.opt .rec{font-size:11px;font-weight:600;color:var(--ds-success);margin-left:8px}
+.payers{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin:0 0 10px 30px}
+.payers label{display:flex;gap:8px;align-items:center;border:1px solid var(--ds-border);border-radius:var(--ds-rd);padding:6px 10px;font-size:13px}
+.payers label span{margin-left:auto;color:var(--ds-fg3);font-size:12px}
+.note{font-size:13px;background:var(--ds-accent-25);color:var(--ds-accent);border-radius:var(--ds-rd);padding:8px 12px;margin-bottom:12px}
+.foot{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-top:16px}
+.btn{height:36px;padding:0 16px;border-radius:var(--ds-rd-full);border:1px solid var(--ds-border-strong);background:var(--ds-base);font-weight:500;white-space:nowrap}
+.btn:hover{background:var(--ds-2)}
+.btn.primary{background:var(--ds-accent);border-color:var(--ds-accent);color:#fff}
+.btn.primary:hover{background:var(--ds-accent-hover)}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.sm{height:30px;font-size:13px;padding:0 12px}
 .btns{display:flex;gap:8px;flex-wrap:wrap}
-.reasons{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px}
-.reasons button{border:1px solid var(--line);border-radius:999px;background:var(--surface);padding:4px 10px;font-size:12px}
-.reasons button:hover{border-color:var(--accent);color:var(--accent)}
-.editlines{display:grid;gap:6px;margin-top:10px}
-.editlines label{display:flex;gap:8px;align-items:center;font-size:13px}
-.diff{width:100%;border-collapse:collapse;font-size:13px;margin-top:8px}
-.diff td,.diff th{padding:6px 8px;border-bottom:1px solid var(--line);position:static;background:none}
-.diff .new{background:var(--ok-soft);color:var(--ok);font-weight:600;border-radius:4px;padding:1px 6px}
-.groups{display:grid;gap:8px;margin:10px 0}
-.grp{display:flex;gap:10px;align-items:flex-start;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
-.grp input{margin-top:3px}
-.grp b{display:block}
-.near{margin:6px 0 0;padding:0;list-style:none}
-.near li{font-size:13px;color:var(--muted);padding:4px 0;border-top:1px solid var(--line)}
-.near li:first-child{border-top:0}
-.near b{color:var(--ink);font-weight:500}
-.nextc{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}
-.callprep{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;font-size:13px;margin:8px 0}
-.callprep span:nth-child(odd){color:var(--muted)}
+.link{background:none;border:0;padding:0;color:var(--ds-accent);font-weight:500}
+.done-rows{margin-top:18px;border-top:1px solid var(--ds-border);padding-top:12px}
+.done-rows .k{font-size:12px;color:var(--ds-fg3);font-weight:500;margin-bottom:6px}
+.drow{display:flex;align-items:center;gap:10px;background:var(--ds-1);border-radius:var(--ds-rd);padding:8px 12px;margin-bottom:6px;font-size:13px}
+.drow .ck{width:16px;height:16px;border-radius:50%;border:1.5px solid var(--ds-success);display:grid;place-items:center;flex:none}
+.drow .ck::after{content:"";width:6px;height:3px;border-left:1.5px solid var(--ds-success);border-bottom:1.5px solid var(--ds-success);transform:rotate(-45deg) translate(0,-1px)}
+.drow .q{color:var(--ds-fg2)}
+.drow .a{font-weight:500;margin-left:auto;text-align:right}
 
-/* Working */
-.work{border:1px solid var(--line);border-radius:10px;padding:10px 14px;background:var(--surface-2);max-width:520px}
-.work-title{font-size:13px;font-weight:600;margin-bottom:6px}
-.wstep{display:flex;align-items:flex-start;gap:10px;padding:4px 0;font-size:13px;color:var(--faint)}
-.wstep.active,.wstep.done{color:var(--ink)}
-.wcheck{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--line-strong);display:grid;place-items:center;flex:none;margin-top:3px}
-.wstep.done .wcheck{background:var(--ok);border-color:var(--ok)}
-.wstep.done .wcheck::after{content:"";width:5px;height:3px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translate(0,-1px)}
-.wstep.active .wcheck{border-color:var(--accent);border-right-color:transparent;animation:spin .8s linear infinite}
-.wdetail{display:none;font-size:12px;color:var(--muted)}
-.wstep.done .wdetail{display:block}
-.wcollapsed{display:flex;align-items:center;gap:8px;background:none;border:0;padding:0;color:var(--muted);font-size:13px;margin-bottom:10px}
-.wcollapsed .wcheck{background:var(--ok);border-color:var(--ok);margin:0}
-.wcollapsed .wcheck::after{content:"";width:5px;height:3px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translate(0,-1px)}
-
-/* Composer */
-.composer{border-top:1px solid var(--line);padding:10px 20px 12px}
+/* Conversation (Medium) */
+.msg{display:flex;gap:12px;margin-bottom:18px}
+.msg .b{flex:1;min-width:0}
+.msg .who{font-size:12px;font-weight:600;margin-bottom:4px}
+.msg p{margin:0 0 10px}
+.msg.user{justify-content:flex-end}
+.msg.user .b{flex:none;max-width:78%;text-align:right}
+.bubble{display:inline-block;text-align:left;background:var(--ds-accent-50);padding:9px 13px;border-radius:14px}
+.qcard{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:16px}
+.qcard h3{margin:0 0 6px;font-size:17px;font-weight:600}
+.found{background:var(--ds-accent-25);border-radius:var(--ds-rd);padding:9px 12px;font-size:13px;margin:8px 0 12px}
+.found b{font-weight:600}
+.counts{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin:8px 0 12px}
+.counts div{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:10px 12px}
+.counts b{display:block;font-size:22px;font-weight:600}
+.counts span{font-size:12px;color:var(--ds-fg2)}
+.work{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:12px 14px;background:var(--ds-1);max-width:520px}
+.work-t{font-size:13px;font-weight:600;margin-bottom:6px}
+.wstep{display:flex;gap:10px;align-items:flex-start;padding:3px 0;font-size:13px;color:var(--ds-fg3)}
+.wstep.done,.wstep.active{color:var(--ds-fg1)}
+.wck{width:14px;height:14px;border-radius:50%;border:1.5px solid var(--ds-border-strong);margin-top:3px;flex:none;display:grid;place-items:center}
+.wstep.done .wck{background:var(--ds-success);border-color:var(--ds-success)}
+.wstep.done .wck::after{content:"";width:5px;height:3px;border-left:1.5px solid #fff;border-bottom:1.5px solid #fff;transform:rotate(-45deg) translate(0,-1px)}
+.wstep.active .wck{border-color:var(--ds-accent);border-right-color:transparent;animation:spin .8s linear infinite}
+.wd{display:none;font-size:12px;color:var(--ds-fg2)}
+.wstep.done .wd{display:block}
+.composer{border-top:1px solid var(--ds-border);padding:10px 20px 12px}
 .chips{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px}
-.chip{font-size:12px;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface-2)}
-.chip:hover{border-color:var(--accent);color:var(--accent)}
-.refchip{display:inline-flex;gap:6px;align-items:center;font-size:12px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:3px 8px;margin-bottom:8px}
-.refchip button{background:none;border:0;padding:0;color:var(--muted)}
-.input-row{display:flex;gap:8px;border:1px solid var(--line-strong);border-radius:10px;padding:5px 5px 5px 12px;background:var(--surface)}
-.input-row input{flex:1;border:0;background:none;font:inherit;color:var(--ink);outline:none;min-width:0}
-.send{width:30px;height:30px;border-radius:50%;border:0;background:var(--accent);color:#fff;display:grid;place-items:center;flex:none}
-.helper{font-size:12px;color:var(--faint);margin-top:6px}
+.chip{font-size:12px;font-weight:500;padding:4px 10px;border-radius:var(--ds-rd-full);border:0;background:var(--ds-accent-50);color:var(--ds-accent)}
+.inrow{display:flex;gap:8px;border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:5px 5px 5px 12px;background:var(--ds-accent-25)}
+.inrow input{flex:1;border:0;background:none;outline:none;min-width:0}
+.send{width:30px;height:30px;border-radius:50%;border:0;background:var(--ds-accent);color:#fff;display:grid;place-items:center}
 
-/* Walkthrough tracker, in the top bar */
-.tracker{position:relative}
-.tr-pill{display:flex;align-items:center;gap:8px;height:34px;padding:0 12px;border-radius:8px;border:1px solid var(--line);background:var(--surface);font-size:13px;max-width:340px}
-.tr-pill .ring{width:16px;height:16px;border-radius:50%;flex:none;background:conic-gradient(var(--accent) var(--p), var(--line) 0)}
-.tr-pill span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.tr-pop{position:absolute;right:0;top:40px;width:300px;background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:45;padding:10px 14px 12px;font-size:13px}
-.tr-pop .k{font-size:12px;color:var(--faint);font-weight:600;margin-bottom:6px}
-.tr-list{list-style:none;margin:0;padding:0}
-.tr-list li{display:flex;gap:8px;padding:3px 0;color:var(--faint)}
-.tr-list li.done{color:var(--muted)}
-.tr-list li.cur{color:var(--ink);font-weight:600}
-.tr-list li .m{width:14px;flex:none;text-align:center}
-.tr-list li .loop{margin-left:auto;font-size:11px;font-weight:500;color:var(--faint)}
+/* Spicy */
+.hero{display:flex;gap:14px;align-items:flex-start;margin-bottom:18px}
+.hero .av{width:36px;height:36px}
+.hero h1{margin:0;font-size:24px;font-weight:600;letter-spacing:-.01em}
+.hero p{margin:6px 0 0;color:var(--ds-fg2)}
+.exc{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);margin-bottom:10px;overflow:hidden}
+.exc.open{border-color:var(--ds-warning)}
+.exc-h{display:flex;align-items:center;gap:10px;width:100%;text-align:left;background:none;border:0;padding:13px 16px}
+.exc-h b{flex:1;font-weight:600;font-size:15px}
+.ok{font-size:13px;color:var(--ds-success);font-weight:500;white-space:nowrap}
+.exc-b{padding:0 16px 16px}
+.exc-b p{margin:0 0 10px;color:var(--ds-fg2)}
+
+/* Review */
+.totals{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);margin:12px 0 16px}
+.totals div{padding:14px 16px;border-left:1px solid var(--ds-border)}
+.totals div:first-child{border-left:0}
+.totals b{display:block;font-size:22px;font-weight:600}
+.totals span{font-size:12px;color:var(--ds-fg2)}
+.approved{border:1px solid var(--ds-success);background:var(--ds-success-bg);border-radius:var(--ds-rd-l);padding:14px 16px;margin-top:14px}
+
+/* Preview */
+.pv-head{padding:16px 18px 12px;border-bottom:1px solid var(--ds-border)}
+.pv-head .k{font-size:12px;color:var(--ds-fg3);font-weight:500;display:flex;justify-content:space-between}
+.pv-head b{display:block;font-size:17px;margin-top:2px}
+.pv-body{padding:14px 18px 18px}
+.pv-tot{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
+.pv-tot div{background:var(--ds-1);border-radius:var(--ds-rd);padding:8px 10px}
+.pv-tot b{display:block;font-size:17px;font-weight:600;font-family:var(--ds-font)}
+.pv-tot span{font-size:11px;color:var(--ds-fg2);line-height:1.3;display:block}
+.pv-g{font-size:12px;font-weight:600;color:var(--ds-fg3);margin:12px 0 4px}
+.pv-row{display:flex;gap:10px;align-items:flex-start;padding:8px 0;border-top:1px solid var(--ds-border)}
+.pv-g + .pv-row{border-top:0}
+.pv-ic{width:22px;height:22px;border-radius:6px;display:grid;place-items:center;flex:none;margin-top:1px;background:var(--ds-success-bg);color:var(--ds-success)}
+.pv-ic svg{width:12px;height:12px}
+.pv-row.pend .pv-ic{background:var(--ds-warning-bg);color:var(--ds-warning)}
+.pv-row.warn .pv-ic{background:var(--ds-danger-bg);color:var(--ds-danger)}
+.pv-t{font-size:13px;font-weight:500}
+.pv-n{font-size:12px;color:var(--ds-fg2)}
+.pv-row.pend .pv-t{color:var(--ds-fg2)}
+.pv-row.flash{animation:flash 1.2s ease}
+.claim{border:1px solid var(--ds-border);border-radius:var(--ds-rd-l);padding:12px;margin-top:14px}
+.claim .h{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:8px}
+.claim .h b{font-size:13px}
+.line{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;border-top:1px solid var(--ds-border)}
+.line:first-of-type{border-top:0}
+.mod{display:inline-block;font-size:11px;font-weight:500;padding:0 6px;border-radius:4px;background:var(--ds-2);margin-left:4px}
+.mod.new{background:var(--ds-accent-50);color:var(--ds-accent)}
+.claim .st{margin-top:8px;font-size:12px;font-weight:500}
+.claim .st.okc{color:var(--ds-success)} .claim .st.warn{color:var(--ds-danger)} .claim .st.pend{color:var(--ds-warning)}
 
 /* Prototype controls */
-.proto{position:fixed;left:16px;bottom:16px;width:270px;background:var(--surface);border:1px solid var(--line-strong);border-radius:12px;padding:12px 14px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:40;display:none}
+.proto{position:fixed;left:16px;bottom:16px;width:240px;background:var(--ds-base);border:1px solid var(--ds-border-strong);border-radius:var(--ds-rd-l);padding:10px 12px;box-shadow:0 8px 24px rgba(0,0,0,.12);z-index:40;display:none}
 .proto.show{display:block}
-.proto h4{margin:0 0 8px;font-size:13px}
 .proto button{display:block;width:100%;text-align:left;background:none;border:0;padding:5px 6px;border-radius:6px;font-size:13px}
-.proto button:hover{background:var(--surface-2)}
-.proto .psep{border-top:1px solid var(--line);margin:8px 0}
+.proto button:hover{background:var(--ds-2)}
 
 @keyframes spin{to{transform:rotate(360deg)}}
+@keyframes flash{0%{background:var(--ds-accent-50)}100%{background:transparent}}
 @keyframes rise{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
-@media (prefers-reduced-motion: reduce){*{animation:none !important;transition:none !important}}
-@media (max-width:1000px){
-  .claim{grid-template-columns:1fr;height:auto}
-  .main{height:auto}
-  .convo{min-height:80vh}
-  .search{display:none}
-  .tr-pill span{display:none}
-}
+.reveal{animation:rise .3s ease both}
+@media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+@media (max-width:1200px){ .app{grid-template-columns:260px minmax(0,1fr);height:auto} .app > .preview{grid-column:1 / -1} .card{max-height:none} }
+@media (max-width:820px){ .app{grid-template-columns:1fr} .brand span,.hz-label{display:none} .top-r{min-width:0} .brand{min-width:0} }
 </style>
 </head>
 <body>
-<header class="topbar">
-  <nav class="crumbs" id="crumbs" aria-label="Breadcrumb"></nav>
-  <div class="search" aria-hidden="true">Global search</div>
-  <div class="tracker" id="tracker"></div>
-  <button class="ai-btn" id="aiBtn" type="button"><span class="spin"></span>
-    <svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l2.2 6.3L20 10l-5.8 1.7L12 18l-2.2-6.3L4 10l5.8-1.7z"/></svg>Athelas Agent</button>
-  <button class="proto-btn" id="protoBtn" type="button" aria-expanded="false">Prototype controls</button>
+<header class="top">
+  <div class="brand"><svg viewBox="0 0 20 20" aria-hidden="true"><path fill="currentColor" d="M9 1.5h2v6.2l4.4-4.4 1.4 1.4L12.4 9H18.5v2h-6.1l4.4 4.4-1.4 1.4-4.4-4.4v6.1H9v-6.1l-4.4 4.4-1.4-1.4L7.6 11H1.5V9h6.1L3.2 4.7l1.4-1.4L9 7.7z"/></svg>Air <span>Billing setup</span></div>
+  <div class="hz"><span class="hz-label">Horizon</span><div class="seg" id="seg" role="group" aria-label="Horizon"></div></div>
+  <div class="top-r"><span class="golive">Go-live <b>Nov 17</b></span><button class="ghost-btn" id="protoBtn" type="button" aria-expanded="false">Prototype controls</button></div>
 </header>
-<main class="main" id="main"></main>
-
-
+<main class="app">
+  <aside class="card" id="rail" aria-label="Setup steps"></aside>
+  <section class="card" id="work" aria-label="Setup"></section>
+  <aside class="card preview" id="preview" aria-label="Lakeside PT on day 1"></aside>
+</main>
 <div class="proto" id="proto" role="dialog" aria-label="Prototype controls">
-  <h4>Prototype controls</h4>
-  <button data-jump="reset">Reset to the worklist</button>
-  <div class="psep"></div>
-  <button data-jump="summary">Summary ready</button>
-  <button data-jump="revised">Plan revised after the question</button>
-  <button data-jump="resubmitted">Claim resubmitted</button>
-  <button data-jump="pattern">Similar claims shown</button>
-  <button data-jump="applied">Fix applied once</button>
-  <div class="psep"></div>
-  <button data-hold type="button">Hold: still open</button>
+  <button data-jump="reset" type="button">Reset this horizon</button>
+  <button data-jump="end" type="button">Jump to review</button>
+  <button data-jump="approved" type="button">Jump to approved</button>
 </div>
-
 <script>
-/* ---------- Story data (fictional) ---------- */
-const CLAIM = {id:"22316691", practice:"Rock Valley Physical Therapy and Therapy Services", patient:"Alex Rivera", dob:"03/14/1986", payer:"Iowa Blue Shield", member:"IBS10001", dos:"10/07/2026", billed:386};
-const LINES = [["97110","Therapeutic exercise",96.50],["97112","Neuromuscular re-education",96.50],["97140","Manual therapy",76.50],["97161","PT evaluation, low complexity",116.50]];
-const WORKLIST = [
-  {id:"22316691", patient:"Alex Rivera", payer:"Iowa Blue Shield", amt:386.00, reason:"Missing modifier", age:"6 days"},
-  {id:"22316702", patient:"Ben Ward", payer:"Prairie Health Plan", amt:145.20, reason:"Referring provider missing", age:"5 days"},
-  {id:"22316715", patient:"Grace Holt", payer:"Wellmark", amt:298.00, reason:"Eligibility", age:"5 days"},
-  {id:"22316720", patient:"Owen Pike", payer:"Iowa Blue Shield", amt:412.00, reason:"Missing modifier", age:"4 days", similar:true},
-  {id:"22316733", patient:"Rosa Diaz", payer:"Medicare", amt:221.40, reason:"KX threshold", age:"4 days"},
-  {id:"22316741", patient:"Luis Ortega", payer:"Iowa Blue Shield", amt:368.00, reason:"Missing modifier", age:"3 days", similar:true},
-  {id:"22316752", patient:"Maya Chen", payer:"Aetna", amt:254.60, reason:"Timely filing", age:"3 days"},
-  {id:"22316768", patient:"Ana Silva", payer:"Iowa Blue Shield", amt:342.00, reason:"Missing modifier", age:"2 days", similar:true},
-  {id:"22316774", patient:"Chris Wu", payer:"Medica", amt:186.00, reason:"Credentialing", age:"2 days"},
-  {id:"22316780", patient:"Lena Brooks", payer:"Iowa Blue Shield", amt:318.00, reason:"Missing modifier", age:"1 day", similar:true}
+/* ---------- Shared practice data (fictional) ---------- */
+const AREAS = [
+  {id:"site", name:"Site configs", total:5, data:5, def:0},
+  {id:"elig", name:"Eligibility", total:20, data:18, def:1},
+  {id:"bill", name:"Billing", total:56, data:51, def:3},
+  {id:"post", name:"Posting", total:14, data:11, def:1}
 ];
-const SOURCES = {
-  details:{title:"Claim details"},
-  record:{title:"Medical record", meta:"Visit Oct 7, 2026. Alex Rivera. Signed by Dana Lee, PT, DPT.",
-    body:[["Subjective: patient reports improved balance at home, fewer near falls."],["Plan of care: habilitative. Goal is to build balance and gait skills not previously attained.",true],["Treatment: therapeutic exercise, neuromuscular re-education, manual therapy."],["Initial evaluation completed today."]]},
-  remit:{title:"Remittance", meta:"Iowa Blue Shield, Oct 14, 2026.",
-    body:[["Claim 22316691. Paid $0.00 of $386.00."],["CO-4: the procedure code is inconsistent with the modifier used, or a required modifier is missing.",true],["Applied to 97110, 97112, 97140, 97161."]]},
-  history:{title:"Claim history", meta:"Claim 22316691.",
-    body:[["Oct 7, 2026: visit documented."],["Oct 9, 2026: initial claim sent to Iowa Blue Shield without modifier 96.",true],["Oct 14, 2026: denied, CO-4."]]},
-  policy:{title:"Iowa Blue Shield modifier note", meta:"From past remits and payer bulletins on file.",
-    body:[["Habilitative PT lines need modifier 96. Rehabilitative lines need modifier 97.",true],["Evaluation codes are not part of this requirement in the bulletins on file."]]}
+const PAYERS = [["wellmark","Wellmark",9800],["aetna","Aetna",4100],["uhc","UnitedHealthcare",3200],["medica","Medica",2600],["medicare","Medicare",900],["medicaid","Iowa Medicaid",0]];
+const Q = {
+  si1:{area:"site", short:"Practice information", title:"Is this your practice information?", src:"data", conf:"Matched to NPPES and your WebPT records", prefill:"yes",
+    opts:[{v:"yes",t:"Yes, this is right",fx:"Claims go out under Lakeside Physical Therapy, at 2 locations"},{v:"no",t:"Something is wrong",fx:"Your launcher will reach out to fix it",warn:true}]},
+  el1:{area:"elig", short:"What the front desk collects", title:"What should your front desk collect at check-in?", src:"data", conf:"Copays on 94% of your visits, deductibles on 2%", prefill:"copay",
+    found:"Your front desk collected the copay on 94% of visits, and almost never collected toward a deductible. So I set you up to collect copays only.",
+    opts:[{v:"copay",t:"Copays only",fx:"No change from today",rec:true},{v:"some",t:"Copays, plus deductibles for some payers",fx:"PAYERS"},{v:"all",t:"Copays and an estimated deductible for every payer",fx:"About $20,600 more at check-in every 90 days"}]},
+  el3:{area:"elig", short:"Medicare Advantage alert", title:"Should the front desk get an alert for Medicare Advantage plans?", src:"def", conf:"Athelas default for PT practices", prefill:"yes",
+    opts:[{v:"yes",t:"Yes, alert them",fx:"About 31 alerts every 90 days"},{v:"no",t:"No alert",fx:"Copays for these plans may be missed",warn:true}]},
+  bi1:{area:"bill", short:"Habilitative modifier", title:"Should modifier 96 be added when the plan of care is habilitative?", src:"data", conf:"38 Wellmark claims were denied without it last year", prefill:"auto",
+    found:"38 Wellmark claims were denied last year for a missing modifier, worth $12,560. Every one had a habilitative plan of care.",
+    opts:[{v:"auto",t:"Yes, add it automatically",fx:"Would have prevented 38 denials, $12,560",rec:true},{v:"hold",t:"Hold these claims for my review",fx:"About 3 claims a month wait for you"},{v:"none",t:"Don't change these claims",fx:"These denials will likely continue",warn:true}]},
+  bi2:{area:"bill", short:"Provider waiting on credentialing", title:"What should happen to Dr. Patel's Medica claims until he's credentialed?", src:"none", conf:"Not in your data. Dr. Patel joined in October", prefill:null,
+    found:"Dr. Patel has 4 Medica visits in the next two weeks. Medica doesn't allow billing a new provider under someone else's NPI.",
+    opts:[{v:"hold",t:"Hold them until he's credentialed",fx:"4 claims wait, then go out the day he's approved",rec:true},{v:"super",t:"Bill under his supervising provider",fx:"Medica doesn't allow this. Compliance risk",warn:true},{v:"send",t:"Send them under his name anyway",fx:"Medica will deny them until he's credentialed",warn:true}]},
+  po1:{area:"post", short:"Small balance write-offs", title:"Should small patient balances be written off automatically?", src:"data", conf:"Your team wrote off balances under $10 by hand 412 times", prefill:"10",
+    found:"Your team wrote off balances under $10 by hand 412 times last year.",
+    opts:[{v:"5",t:"Under $5",fx:"238 a year, about $860"},{v:"10",t:"Under $10",fx:"412 a year. Saves about 7 hours a month",rec:true},{v:"never",t:"Never automatically",fx:"Your team keeps doing it by hand"}]},
+  po2:{area:"post", short:"Medicaid as secondary", title:"When Medicare pays, should the rest go to Iowa Medicaid automatically?", src:"data", conf:"61 patients have Medicare first and Iowa Medicaid second", prefill:"auto",
+    found:"Secondary claims to Iowa Medicaid went out an average of 19 days after Medicare paid.",
+    opts:[{v:"auto",t:"Yes, send it the same day",fx:"About $3,900 a month, paid 17 days sooner",rec:true},{v:"ask",t:"Remind me each time",fx:"About 40 reminders a month"}]}
 };
-const STEPS_W = {
-  open:{title:"Reviewing claim 22316691", steps:[["Reading the remittance","Denied Oct 14, CO-4, $0 paid"],["Checking modifiers on each line","No modifier 96 on any line"],["Reviewing the medical record","Plan of care is habilitative"],["Checking the claim history","Sent once, Oct 9"]]},
-  check:{title:"Checking payer requirements", steps:[["Reading Iowa Blue Shield's modifier notes","Evaluation codes are excluded"],["Revising the plan","3 lines, not 4"]]},
-  similar:{title:"Checking similar claims", steps:[["Searching the last 30 days","Iowa Blue Shield, CO-4, no modifier 96"],["Checking each plan of care","23 match, 3 close but different"]]},
-  next:{title:"Reviewing claim 22316702", steps:[["Reading the remittance","Denied Oct 8"],["Checking the referring provider","Missing on both lines"]]}
-};
-const JOURNEY = [
-  ["Opens the claims page",""],["Picks a claim",""],["Watches the agent work","Understand"],["Reads the summary","Understand"],
-  ["Checks the evidence","Understand"],["Questions the agent","Decide"],["Accepts the revised plan","Decide"],["Adds the modifier","Act"],
-  ["Previews the submission","Act"],["Resubmits","Act"],["Sees the pattern","Find a pattern"],["Applies the fix once","Find a pattern"],
-  ["Moves to the next claim",""],["Leaves the page",""]
+const MILD_ORDER = ["si1","el1","el3","bi1","bi2","po1","po2"];
+const MED_ORDER = ["el1","bi1","bi2","po1","po2"];
+const EXC = [
+  {id:"x1", key:"el1", kind:"c", kindL:"Contradiction", area:"elig", title:"Your records say copays only, but your patient balances keep growing",
+   body:"Copays were collected on 94% of visits, but $38,400 in patient balances is older than 60 days, and 11 of 14 similar practices collect deductibles for Wellmark and Aetna.",
+   opts:[{v:"copay",t:"Keep collecting copays only",fx:"No change from today"},{v:"some",t:"Also collect deductibles for Wellmark and Aetna",fx:"About $13,900 more at check-in every 90 days",rec:true},{v:"all",t:"Collect an estimated deductible for every payer",fx:"About $20,600 more every 90 days"}]},
+  {id:"x2", key:"bi2", kind:"r", kindL:"Risk", area:"bill", title:"Dr. Patel isn't credentialed with Medica yet",
+   body:"He has 4 Medica visits in the next two weeks. Some practices bill new providers under a supervisor, but Medica doesn't allow it.",
+   opts:[{v:"hold",t:"Hold his Medica claims until he's credentialed",fx:"4 claims wait, then go out the day he's approved",rec:true},{v:"super",t:"Bill under his supervising provider",fx:"Compliance risk. Medica will likely deny",warn:true}]},
+  {id:"x3", key:"rates", kind:"g", kindL:"Gap", area:"post", title:"Your Wellmark contract isn't on file",
+   body:"I set Wellmark rates from 412 of their payments, which point to a flat $79 per visit. With the contract, underpayments are caught with certainty.",
+   opts:[{v:"upload",t:"Upload the Wellmark contract",fx:"Rates come from the contract",rec:true},{v:"infer",t:"Use the rates from your payments for now",fx:"Works on day 1. I'll ask again in 30 days"}]}
 ];
+const STEPS = {
+  med:{t:"Reading what Commure brought over from WebPT", s:[["Reading 6,412 claims and 9,180 remits","12 months of history"],["Learning how your front desk collects","Copays on 94% of visits"],["Looking for denials your setup could prevent","4 patterns found"],["Answering the setup questions","85 of 95 answered from your data"]]},
+  spicy:{t:"Building your setup", s:[["Reading 6,412 claims and 9,180 remits","12 months of history"],["Comparing with 14 similar PT practices on Athelas","Same size, same state, same payers"],["Building every rule","95 answers, 64 rules"],["Testing it on your last 90 days of claims","1,604 claims"],["Finding what only you can decide","3 decisions"]]}
+};
+const HZ = {
+  mild:{label:"Mild", story:"<b>You confirm everything.</b> Every answer is prefilled from your data."},
+  medium:{label:"Medium", story:"<b>Athelas Agent asks only 5.</b> It answered the rest from your data."},
+  spicy:{label:"Spicy", story:"<b>3 decisions left.</b> Athelas Agent built the rest."}
+};
 
 /* ---------- State ---------- */
-const fresh = () => ({
-  view:"worklist", claim:null, opened:false, read:false, working:null, left:"props", canDo:false, ref:null,
-  evidence:false, asked:false, revised:false, revisedAccepted:false,
-  s1:"open", s2:"locked", s3:"locked", s1edit:false, s1lines:["97110","97112","97140","97161"], notThis:null, couldnt:false,
-  resubmitted:false, hold:"open", similarShown:false, applied:false, batchUndone:false, resubUndone:false, picked:{verified:true, check:false},
-  nextOffered:false, nextOpened:false, nextRead:false, left2:false, finished:false, thumbs:null, trackerOpen:false,
-  log:[]
-});
-let S = fresh();
+const freshH = h => ({
+  mild:{cur:"si1", sel:{...prefills()}, ok:{}, bulk:{}, payers:["wellmark","aetna"], view:"q", approved:false, confirm:false},
+  medium:{read:false, started:false, idx:-1, ans:{}, payers:["wellmark","aetna"], pickOpen:false, chat:[], view:"chat", approved:false, confirm:false},
+  spicy:{built:false, open:"x1", sel:{}, done:{}, view:"main", approved:false, confirm:false}
+})[h];
+function prefills(){ const o = {}; for (const k in Q) if (Q[k].prefill) o[k] = Q[k].prefill; return o; }
+const S = { h:(location.hash||"#mild").slice(1), working:false, prevSig:{} };
+if (!HZ[S.h]) S.h = "mild";
+S.mild = freshH("mild"); S.medium = freshH("medium"); S.spicy = freshH("spicy");
 
 /* ---------- Helpers ---------- */
 const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const money = n => "$" + n.toLocaleString("en-US",{minimumFractionDigits:2,maximumFractionDigits:2});
+const money = n => "$" + Math.round(n).toLocaleString("en-US");
 const reduced = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
-const STAR = `<svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 2l2.2 6.3L20 10l-5.8 1.7L12 18l-2.2-6.3L4 10l5.8-1.7z"/></svg>`;
-const AV = `<div class="avatar"><svg viewBox="0 0 24 24" aria-hidden="true"><path fill="var(--accent)" d="M12 2l2.2 6.3L20 10l-5.8 1.7L12 18l-2.2-6.3L4 10l5.8-1.7z"/></svg></div>`;
-const mAgent = (h, how) => `<div class="cmsg">${AV}<div class="cbody"><div class="who"><b>Athelas Agent</b></div>${h}${how?`<div><button class="how" data-src="${how}" type="button">How I got here</button></div>`:""}</div></div>`;
-const mUser = t => `<div class="cmsg user"><div class="cbody"><div class="who"><b>Elliot</b></div><div class="bubble">${esc(t)}</div></div></div>`;
-const ev = (id, label) => `<button class="ev" data-src="${id}" type="button">${label || SOURCES[id].title}</button>`;
-const fixLines = () => S.revised && S.revisedAccepted ? ["97110","97112","97140"] : S.s1lines;
-function workHTML(key, live){
-  const w = STEPS_W[key];
-  if (!live) return `<button class="wcollapsed" data-expand="${key}" type="button"><span class="wcheck"></span>${({open:"Reviewed 4 sources",check:"Checked Iowa Blue Shield's requirements",similar:"Checked 26 similar claims",next:"Reviewed 2 sources"})[key]}</button>`;
-  return `<div class="work" id="workBlock" style="margin-bottom:10px"><div class="work-title">${w.title}</div>${w.steps.map(([a,b])=>`<div class="wstep"><span class="wcheck"></span><span><span>${a}</span><span class="wdetail">${b}</span></span></div>`).join("")}</div>`;
+const CHECK = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M2.5 6.2 5 8.5l4.5-5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const DOTS = '<svg viewBox="0 0 12 12" aria-hidden="true"><circle cx="6" cy="6" r="2.5" fill="currentColor"/></svg>';
+const BANG = '<svg viewBox="0 0 12 12" aria-hidden="true"><path d="M6 2.5v4.2M6 8.8v.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+const payerNames = list => PAYERS.filter(p=>list.includes(p[0])).map(p=>p[1]);
+const joinAnd = a => a.length<=1 ? (a[0]||"") : a.slice(0,-1).join(", ") + " and " + a[a.length-1];
+
+/* ---------- Effective answers per horizon, and whether each is decided ---------- */
+function effective(){
+  const h = S.h;
+  if (h==="mild"){ const m = S.mild; const A = {...m.sel, payers:m.payers, rates:"fee"}; const dec = k => (k==="rates" ? true : !!m.ok[k]); return {A, dec}; }
+  if (h==="medium"){ const m = S.medium; const A = {...prefills(), ...m.ans, payers:m.payers, rates:"fee"}; const dec = k => k==="rates" ? true : (MED_ORDER.includes(k) ? !!m.ans[k] : true); return {A, dec}; }
+  const s = S.spicy; const A = {...prefills(), rates:"infer", payers:["wellmark","aetna"]};
+  for (const x of EXC){ const v = s.sel[x.id] || x.opts.find(o=>o.rec).v; A[x.key] = v; }
+  if (A.el1==="some") A.payers = ["wellmark","aetna"];
+  const dec = k => { const x = EXC.find(e=>e.key===k); return x ? !!s.done[x.id] : true; };
+  return {A, dec};
+}
+function totals(A){
+  const collect = A.el1==="all" ? PAYERS.reduce((t,p)=>t+p[2],0) : A.el1==="some" ? PAYERS.filter(p=>A.payers.includes(p[0])).reduce((t,p)=>t+p[2],0) : 0;
+  const prevented = A.bi1==="auto" ? 12560 : 0;
+  const hours = A.po1==="10" ? 7 : A.po1==="5" ? 3 : 0;
+  return {collect, prevented, hours};
 }
 
-/* ---------- Journey progress ---------- */
-function journeyDone(){
-  return [
-    true, S.opened, S.read, S.read, S.evidence, S.asked, S.revisedAccepted,
-    S.s1==="accepted", S.s2==="accepted", S.resubmitted, S.similarShown, S.applied,
-    S.nextOpened, S.finished
-  ];
-}
-function renderTracker(){
-  const d = journeyDone();
-  const cur = d.findIndex(x=>!x);
-  const n = cur===-1 ? JOURNEY.length : cur;
-  const pct = d.filter(Boolean).length/JOURNEY.length*100;
-  $("#tracker").innerHTML = `<button class="tr-pill" data-tracker type="button" aria-expanded="${S.trackerOpen}" aria-label="Walkthrough progress"><span class="ring" style="--p:${pct}%"></span><span>${cur===-1?"Walkthrough complete":`Step ${n+1} of ${JOURNEY.length}: ${JOURNEY[n][0]}`}</span></button>
-    ${S.trackerOpen?`<div class="tr-pop"><div class="k">THE BILLER'S STEPS</div><ol class="tr-list">${JOURNEY.map(([t,l],i)=>`<li class="${d[i]?"done":""} ${i===n?"cur":""}"><span class="m">${d[i]?"✓":i+1}</span>${t}<span class="loop">${l}</span></li>`).join("")}</ol></div>`:""}`;
-}
-/* ---------- Top ---------- */
-function renderTop(){
-  $("#crumbs").innerHTML = S.view==="worklist" ? `<b>Claims</b>` : `<button data-goto="worklist" type="button">Claims</button><span>/</span><b>${S.claim}</b>`;
-  $("#aiBtn").classList.toggle("working", !!S.working);
+/* ---------- Top switch ---------- */
+function renderSeg(){
+  $("#seg").innerHTML = Object.entries(HZ).map(([k,v])=>`<button data-hz="${k}" type="button" aria-pressed="${S.h===k}">${v.label}</button>`).join("");
 }
 
-/* ---------- Worklist ---------- */
-function worklistHTML(){
-  const resolved = id => {
-    if (id==="22316691" && S.resubmitted && !S.resubUndone) return `<span class="pill wait">Resubmitted</span>`;
-    const w = WORKLIST.find(x=>x.id===id);
-    if (w.similar && S.applied && !S.batchUndone) return `<span class="pill ok">Fix applied</span>`;
-    return `<span class="pill red">Denied</span>`;
-  };
-  const count = (S.resubmitted && !S.resubUndone ? 1 : 0) + (S.applied && !S.batchUndone ? 18 : 0);
-  return `<section class="wl" aria-label="Worklist">
-    <div class="wl-head"><h1>My worklist</h1><span class="muted small">Sorted by your priority: oldest first</span></div>
-    ${count?`<div class="banner">${count} claims resolved today from ${S.applied?"one investigation":"your work so far"}.</div>`:""}
-    <div class="wl-scroll"><table><thead><tr><th>Claim</th><th>Patient</th><th>Payer</th><th>Reason</th><th class="r">Amount</th><th>Age</th><th>Status</th></tr></thead><tbody>
-    ${WORKLIST.map(w=>`<tr class="click ${count && (resolved(w.id).includes("ok")||resolved(w.id).includes("wait"))?"dimrow":""}" data-open="${w.id}" tabindex="0"><td class="num"><b>${w.id}</b></td><td>${w.patient}</td><td>${w.payer}</td><td>${w.reason}</td><td class="r num">${money(w.amt)}</td><td class="muted">${w.age}</td><td>${resolved(w.id)}</td></tr>`).join("")}
-    </tbody></table><div class="muted small" style="padding:10px 18px">And 31 more claims in your worklist.</div></div></section>`;
-}
-
-/* ---------- Left panel ---------- */
-function statusChip(){
-  if (S.claim==="22316702") return `<span class="chipv red">Denied</span>`;
-  if (S.resubmitted && !S.resubUndone) return `<span class="chipv wait">Resubmitted</span>`;
-  return `<span class="chipv red">Denied, needs review</span>`;
-}
-function stageChip(){
-  if (S.claim==="22316691" && S.resubmitted && !S.resubUndone) return `<span class="chipv stage">Waiting on Iowa Blue Shield</span>`;
-  return `<span class="chipv stage">Payer 1</span>`;
-}
-function leftHTML(){
-  if (S.claim==="22316702") return `<aside class="panel"><div class="p-head"><b>Claim 22316702</b></div><div class="p-body">
-    <div class="sec">Properties</div><div class="pgrid">
-    <div><div class="pk">Status</div><span class="chipv red">Denied</span></div><div><div class="pk">Stage</div><span class="chipv stage">Payer 1</span></div>
-    <div><div class="pk">Assignee</div><span class="chipv person">Elliot</span></div><div><div class="pk">Payer</div><span class="chipv">Prairie Health Plan</span></div>
-    <div><div class="pk">Patient</div><span class="chipv">Ben Ward</span></div><div><div class="pk">Charges</div><span class="chipv">$145.20</span></div></div></div></aside>`;
-  if (S.left!=="props"){
-    if (S.left==="details") return `<aside class="panel"><div class="p-head"><b>Claim ${CLAIM.id}</b></div><div class="p-body doc">
-      <button class="back" data-left="props" type="button">Back to properties</button>
-      <h3>Claim details</h3><div class="meta">${CLAIM.practice}</div>
-      <div class="pgrid" style="margin-bottom:14px"><div><div class="pk">Patient</div>${CLAIM.patient}</div><div><div class="pk">Date of birth</div>${CLAIM.dob}</div>
-      <div><div class="pk">Payer</div>${CLAIM.payer}</div><div><div class="pk">Member ID</div>${CLAIM.member}</div><div><div class="pk">Date of service</div>${CLAIM.dos}</div><div><div class="pk">Total charges</div>${money(CLAIM.billed)}</div></div>
-      <table class="lines"><thead><tr><th>Code</th><th>Modifiers</th><th class="r">Charge</th></tr></thead><tbody>
-      ${LINES.map(([c,d,a])=>{ const has = S.s1==="accepted" && fixLines().includes(c) && !S.resubUndone;
-        return `<tr class="${has?"hl":""}"><td><b>${c}</b><div class="muted" style="font-size:12px">${d}</div></td><td>GP${has?`, 96 <span class="aimark">${STAR}Confirmed by Elliot</span>`:""}</td><td class="r num">${money(a)}</td></tr>`; }).join("")}
-      </tbody></table></div></aside>`;
-    const s = SOURCES[S.left];
-    return `<aside class="panel"><div class="p-head"><b>Claim ${CLAIM.id}</b></div><div class="p-body doc">
-      <button class="back" data-left="props" type="button">Back to properties</button>
-      <h3>${s.title}</h3><div class="meta">${s.meta}</div>${s.body.map(([t,h])=>`<p class="${h?"hl":""}">${esc(t)}</p>`).join("")}
-      <button class="btn" data-ref="${S.left}" type="button" style="margin-top:6px">Add to chat</button></div></aside>`;
+/* ---------- Rail ---------- */
+function areaInfo(a){
+  const h = S.h;
+  if (h==="mild"){
+    const qs = MILD_ORDER.filter(k=>Q[k].area===a.id);
+    const conf = qs.filter(k=>S.mild.ok[k]).length + (S.mild.bulk[a.id] ? a.total - qs.length : 0);
+    const need = a.total - conf;
+    return {state: need ? (conf ? "need" : "todo") : "done", meta: need ? `${conf} of ${a.total} confirmed by you` : `All ${a.total} confirmed by you`, mix:[["var(--ds-accent)",conf/a.total]], extra: qs.length && qs.every(k=>S.mild.ok[k]) && !S.mild.bulk[a.id] && a.total>qs.length ? a.total-qs.length : 0};
   }
-  const act = [["","Visit documented","Oct 7"],["","Initial claim sent","Oct 9"],["","Denied, CO-4","Oct 14"]];
-  if (S.s1==="accepted" && !S.resubUndone) act.push(["ai","Modifier 96 added. Proposed by Athelas Agent, accepted by Elliot","Today"]);
-  if (S.resubmitted && !S.resubUndone) act.push(["ai","Resubmitted by Elliot","Today"]);
-  return `<aside class="panel" aria-label="Claim properties"><div class="p-head"><b>Claim ${CLAIM.id}</b></div><div class="p-body">
-    <div class="sec">Properties</div>
-    <div class="pgrid">
-      <div><div class="pk">Status</div>${statusChip()}</div><div><div class="pk">Stage</div>${stageChip()}</div>
-      <div><div class="pk">Assignee</div><span class="chipv person">Elliot</span></div><div><div class="pk">Updated on</div><span class="chipv">${S.resubmitted&&!S.resubUndone?"Today":"10/14/2026"}</span></div>
-      <div><div class="pk">Patient</div><span class="chipv">${CLAIM.patient}</span></div><div><div class="pk">Date of service</div><span class="chipv">${CLAIM.dos}</span></div>
-      <div><div class="pk">Charges</div><span class="chipv">${money(CLAIM.billed)}</span></div><div><div class="pk">Paid</div><span class="chipv">$0.00</span></div>
-      <div style="grid-column:1/-1"><div class="pk">Submitted insurances</div><span class="chipv">Primary: Iowa Blue Shield</span></div>
-    </div>
-    <div class="sep"></div><div class="sec">Sources</div>
-    ${[["details","Claim details"],["record","Medical record"],["remit","Remittance"],["history","Claim history"]].map(([k,l])=>`<button class="src" data-left="${k}" type="button"><span class="ico"></span>${l}</button>`).join("")}
-    <div class="sep"></div><div class="sec">Activity</div>
-    ${act.map(([c,t,d])=>`<div class="act-item"><span class="d ${c}"></span><div><div>${t}</div><div class="t">${d}</div></div></div>`).join("")}
-  </div></aside>`;
-}
-
-/* ---------- Thread pieces ---------- */
-function summaryHTML(){
-  return mAgent(`<div class="card sum">
-      <h4>Where things stand</h4>
-      <p>Iowa Blue Shield denied this claim. It billed four PT lines for $386.00 on Oct 7, and nothing has been paid. The payer requires modifier 96 on habilitative physical therapy, and the claim went out without it.</p>
-      <div class="evs">${ev("remit","Denial: CO-4")}${ev("details","Field at fault: modifiers")}${ev("history","Sent Oct 9 without 96")}${ev("record","Plan of care: habilitative")}</div>
-      <h4>What to do next</h4>
-      <p>Add modifier 96 to the lines, preview the corrected claim, and resubmit to Iowa Blue Shield.</p>
-      <div class="thumbs"><button data-thumb="up" type="button" aria-pressed="${S.thumbs==="up"}" aria-label="Helpful">Helpful</button><button data-thumb="down" type="button" aria-pressed="${S.thumbs==="down"}" aria-label="Not helpful">Not helpful</button></div>
-      ${planHTML()}
-    </div>`, "remit");
-}
-function stepState(n){ return S["s"+n]; }
-function planHTML(){
-  const lines = fixLines();
-  const cur = S.s1!=="accepted" ? 1 : S.s2!=="accepted" ? 2 : S.s3!=="accepted" ? 3 : 4;
-  const st = (n, title, why, body, actions) => {
-    const state = n===4 ? (S.resubmitted && !S.resubUndone ? "open" : "locked") : stepState(n);
-    const done = state==="accepted";
-    return `<div class="pstep ${done?"done":""} ${state==="locked"?"locked":""} ${cur===n&&state!=="locked"?"current":""}"><span class="no">${n}</span><div>
-      <h5>${title}</h5><p class="why">${why}</p>${body||""}
-      ${done?`<div class="accepted" style="margin-top:8px">Accepted by Elliot</div>`:state!=="locked"&&actions?actions:""}</div></div>`;
-  };
-  const s1actions = S.s1edit
-    ? `<div class="editlines">${LINES.map(([c,d])=>`<label><input type="checkbox" data-editline="${c}" ${S.s1lines.includes(c)?"checked":""}/>${c}, ${d}</label>`).join("")}</div><div class="pbtns"><button class="btn primary" data-act="s1save" type="button">Save lines</button><button class="btn ghost" data-act="s1cancel" type="button">Cancel</button></div>`
-    : S.notThis===1
-    ? `<div class="reasons">${["Wrong fix","Wrong lines","Need more info","Other"].map(r=>`<button data-reason="${r}" type="button">${r}</button>`).join("")}</div>`
-    : `<div class="pbtns"><button class="btn primary" data-act="s1accept" type="button">Accept</button><button class="btn" data-act="s1edit" type="button">Edit</button><button class="btn ghost" data-act="s1not" type="button">Not this</button><button class="btn ghost" data-act="s1couldnt" type="button">Couldn't confirm</button></div>`;
-  return `<div class="plan-title"><b>Suggested plan</b><span class="muted small">Steps unlock in order</span></div>
-    ${st(1, `Add modifier 96 to ${lines.length} line${lines.length===1?"":"s"} ${S.revised&&S.revisedAccepted?`<span class="revised">Revised after Elliot's question</span>`:""}`,
-      "The plan of care is habilitative, and Iowa Blue Shield requires 96 on these lines.",
-      `<div class="chg">What will change: ${lines.join(", ")} gain modifier 96</div> <button class="how" data-left="record" type="button" style="margin-left:8px">View medical record</button>`, s1actions)}
-    ${st(2, "Preview the corrected claim", "Check the changed lines before anything is sent.",
-      S.s2!=="locked" ? `<table class="diff"><tr><th>Line</th><th>Before</th><th>After</th></tr>${LINES.map(([c])=>`<tr><td>${c}</td><td>GP</td><td>GP${lines.includes(c)?` <span class="new">96</span>`:""}</td></tr>`).join("")}</table>` : "",
-      `<div class="pbtns"><button class="btn primary" data-act="s2accept" type="button">Looks right</button><button class="btn" data-act="s2back" type="button">Go back to step 1</button></div>`)}
-    ${st(3, "Resubmit to Iowa Blue Shield", "Sent as a corrected claim. You'll have a short hold to undo.", "",
-      `<div class="pbtns"><button class="btn primary" data-act="s3accept" type="button">Resubmit</button></div>`)}
-    ${st(4, "Waiting on Iowa Blue Shield", "This plan stays open until the claim is paid, not just resubmitted.", "")}`;
-}
-function revisionHTML(){
-  return mAgent(`<p>About the 4 lines: you're right to check. 97161 is an evaluation, and Iowa Blue Shield doesn't require modifier 96 on evaluation codes. Only the three treatment lines need it.</p>
-    <div class="card"><b>Revised step 1</b><div class="chg">Before: 97110, 97112, 97140, 97161</div><br><div class="chg" style="background:var(--ok-soft);color:var(--ok)">After: 97110, 97112, 97140</div>
-    <div class="pbtns">${S.revisedAccepted?`<span class="accepted">Revised plan accepted by Elliot</span>`:S.s1==="accepted"?`<span class="muted small">Step 1 was already accepted</span>`:`<button class="btn primary" data-act="revAccept" type="button">Accept revised plan</button><button class="btn" data-act="revKeep" type="button">Keep original</button>`}</div></div>`, "policy");
-}
-function similarHTML(){
-  const verified = S.picked.verified, check = S.picked.check;
-  const n = (verified?18:0) + (check?5:0), amt = (verified?7420:0) + (check?2060:0);
-  const applied = S.applied && !S.batchUndone;
-  return mAgent(`<p><b>23 other claims have the same cause.</b> Iowa Blue Shield denied them for the missing modifier in the last 30 days, worth $9,480.</p>
-    <div class="groups">
-      <label class="grp"><input type="checkbox" data-grp="verified" ${verified?"checked":""} ${applied?"disabled":""}/><span><b>Fix verified, 18 claims, $7,420</b><span class="muted small">Habilitative plan of care confirmed in each note.</span></span></label>
-      <label class="grp"><input type="checkbox" data-grp="check" ${check?"checked":""} ${applied?"disabled":""}/><span><b>Needs a check, 5 claims, $2,060</b><span class="muted small">The note doesn't say habilitative or rehabilitative.</span></span></label>
-    </div>
-    <div class="muted small" style="font-weight:600">Left out, close but not the same cause</div>
-    <ul class="near">
-      <li><b>22316590</b>: has a modifier, but it's 97, the wrong one.</li>
-      <li><b>22316611</b>: Wellmark, which uses a different modifier rule.</li>
-      <li><b>22316648</b>: plan of care is rehabilitative, not habilitative.</li>
-    </ul>
-    <div class="pbtns">${applied?`<span class="accepted">Applied once by Elliot to ${n} claims</span>`:`<button class="btn primary" data-act="apply" type="button" ${n?"":"disabled"}>Apply this fix once to ${n} claims, ${money(amt)}</button>`}</div>
-    <p class="muted small" style="margin:10px 0 0">This applies the fix to these claims only. It doesn't create a rule or touch claims that arrive later.</p>`, "policy");
-}
-function nextCardHTML(){
-  return mAgent(`<p>This claim is done for now. Want the next claim in your queue?</p>
-    <div class="card nextc"><div><b>Claim 22316702</b> <span class="pill red">Denied</span><div class="muted small">Prairie Health Plan, $145.20. The referring provider is missing.</div></div>
-    <div class="btns">${S.nextOpened?`<span class="muted small">Opened</span>`:`<button class="btn primary" data-act="loadNext" type="button">Load next claim</button><button class="btn" data-act="stay" type="button">Stay here</button>`}</div></div>`);
-}
-function holdLine(kind){
-  const open = S.hold==="open";
-  if (kind==="resub"){
-    if (S.resubUndone) return `<div class="cevent">Resubmission undone by Elliot. The claim is back to denied.</div>`;
-    return `<div class="cevent">Resubmitted to Iowa Blue Shield by Elliot. ${open?`On hold until 4:00 PM. <button class="undo" data-act="undoResub" type="button">Undo</button>`:`Hold ended. Sent to Iowa Blue Shield at 4:00 PM.`}</div>`;
+  if (h==="medium"){
+    if (!S.medium.read) return {state:"todo", meta:"Waiting for Athelas Agent", mix:[]};
+    const qs = MED_ORDER.filter(k=>Q[k].area===a.id); const left = qs.filter(k=>!S.medium.ans[k]).length;
+    const yours = qs.length - left;
+    return {state: left ? "need" : (qs.length ? "done" : "agent"), meta: left ? `${left} need${left===1?"s":""} you. ${a.data} answered by Athelas Agent` : qs.length ? `${a.data} by Athelas Agent, ${yours} by you` : `All ${a.total} answered by Athelas Agent`,
+      mix:[["var(--ds-success)",a.data/a.total],["var(--ds-slate)",a.def/a.total],["var(--ds-accent)",yours/a.total],["var(--ds-warning)",left/a.total]]};
   }
-  if (S.batchUndone) return `<div class="cevent">Fix undone by Elliot on all 18 claims.</div>`;
-  return `<div class="cevent">Fix applied by Elliot with Athelas Agent to ${(S.picked.verified?18:0)+(S.picked.check?5:0)} claims, from claim 22316691. ${open?`On hold until 4:00 PM. <button class="undo" data-act="undoBatch" type="button">Undo</button>`:`Hold ended. ${(S.picked.verified?18:0)+(S.picked.check?5:0)} claims sent.`}</div>`;
+  if (!S.spicy.built) return {state:"todo", meta:"Being built", mix:[]};
+  const xs = EXC.filter(x=>x.area===a.id); const left = xs.filter(x=>!S.spicy.done[x.id]).length;
+  return {state: left ? "need" : "agent", meta: left ? `1 decision. The rest built by Athelas Agent` : `Built by Athelas Agent${xs.length?", decided by you":""}`,
+    mix:[["var(--ds-success)",(a.data)/a.total],["var(--ds-violet)",(a.total-a.data-xs.length)/a.total],["var(--ds-accent)",(xs.length-left)/a.total],["var(--ds-warning)",left/a.total]]};
 }
-function logHTML(){
-  return S.log.map(e=>{
-    if (e.k==="work") return mAgent(workHTML(e.key, S.working===e.key && e.live));
-    if (e.k==="summary") return summaryHTML();
-    if (e.k==="user") return mUser(e.text);
-    if (e.k==="agent") return mAgent(e.html, e.how);
-    if (e.k==="event") return `<div class="cevent">${e.html}</div>`;
-    if (e.k==="revision") return revisionHTML();
-    if (e.k==="resub") return holdLine("resub");
-    if (e.k==="similar") return similarHTML();
-    if (e.k==="batch") return holdLine("batch");
-    if (e.k==="next") return nextCardHTML();
-    return "";
+function curArea(){
+  const h = S.h;
+  if (h==="mild") return S.mild.view==="review" ? "review" : Q[S.mild.cur].area;
+  if (h==="medium"){ if (S.medium.view==="review") return "review"; const k = MED_ORDER[S.medium.idx]; return k ? Q[k].area : null; }
+  if (S.spicy.view==="review") return "review"; const x = EXC.find(e=>e.id===S.spicy.open); return x ? x.area : null;
+}
+function readyToReview(){
+  if (S.h==="mild") return AREAS.every(a=>areaInfo(a).state==="done");
+  if (S.h==="medium") return MED_ORDER.every(k=>S.medium.ans[k]);
+  return EXC.every(x=>S.spicy.done[x.id]);
+}
+function storyText(){
+  if (S.h==="spicy" && S.spicy.built){ const l = EXC.filter(x=>!S.spicy.done[x.id]).length; return l ? `<b>${l} decision${l===1?"":"s"} left.</b> Athelas Agent built the rest.` : `<b>All decided.</b> Athelas Agent built the rest, you made 3 decisions.`; }
+  if (S.h==="medium" && S.medium.read){ const l = MED_ORDER.filter(k=>!S.medium.ans[k]).length; return l ? `<b>Athelas Agent asks only 5.</b> ${l} left. It answered the rest from your data.` : `<b>All 5 answered.</b> Athelas Agent answered the other 90.`; }
+  return HZ[S.h].story;
+}
+function renderRail(){
+  const cur = curArea();
+  const items = AREAS.map((a,i)=>{
+    const inf = areaInfo(a);
+    const dot = inf.state==="done" ? `<span class="dot done">${CHECK}</span>` : inf.state==="agent" ? `<span class="dot agent" title="Athelas Agent"></span>` : inf.state==="need" ? `<span class="dot need">${BANG}</span>` : `<span class="dot">${i+1}</span>`;
+    return `<li class="stp ${cur===a.id?"cur":""}"><button class="stp-btn" data-area="${a.id}" type="button">${dot}<span><span class="stp-t">${a.name}</span><span class="stp-m ${inf.state==="need"?"need":""}" style="display:block">${inf.meta}</span>
+      ${inf.mix.length?`<span class="mix">${inf.mix.map(([c,w])=>`<span style="width:${w*100}%;background:${c}"></span>`).join("")}</span>`:""}</span></button>
+      ${inf.extra?`<div class="stp-x">${inf.extra} more prefilled. <button data-bulk="${a.id}" type="button">Confirm all ${inf.extra}</button></div>`:""}</li>`;
   }).join("");
+  const appr = S[S.h].approved, ready = readyToReview();
+  const rv = `<li class="stp ${cur==="review"?"cur":""}"><button class="stp-btn" data-area="review" type="button"><span class="dot ${appr?"done":""}">${appr?CHECK:5}</span><span><span class="stp-t">Review and go live</span><span class="stp-m" style="display:block">${appr?"Approved. Live on Nov 17":ready?"Ready for your approval":"After the steps above"}</span></span></button></li>`;
+  const leg = S.h==="mild" ? [["var(--ds-accent)","Confirmed by you"]] : S.h==="medium" ? [["var(--ds-success)","From your data"],["var(--ds-slate)","Athelas defaults"],["var(--ds-accent)","Your answers"],["var(--ds-warning)","Needs you"]] : [["var(--ds-success)","From your data"],["var(--ds-violet)","From similar practices"],["var(--ds-accent)","Your decisions"],["var(--ds-warning)","Needs you"]];
+  $("#rail").innerHTML = `<div class="rail-head"><div class="k">SETTING UP</div><b>Lakeside Physical Therapy</b><div class="story">${storyText()}</div></div>
+    <div class="scroll"><ol class="steps">${items}${rv}</ol>
+    <div class="legend">${leg.map(([c,l])=>`<span><i style="background:${c}"></i>${l}</span>`).join("")}</div></div>
+    <div class="rail-foot">Data imported from WebPT on Nov 3.<br>Stuck? <button data-launcher type="button">Ask Priya, your launcher</button></div>`;
 }
-function statusText(){
-  if (S.working==="open") return "Reviewing claim 22316691";
-  if (S.working==="check") return "Checking payer requirements";
-  if (S.working==="similar") return "Checking similar claims";
-  if (S.working==="next") return "Reviewing claim 22316702";
-  if (S.claim==="22316702") return "Waiting for you";
-  if (S.applied && !S.batchUndone) return "Applied the fix to 18 claims";
-  if (S.resubmitted && !S.resubUndone) return "Waiting on Iowa Blue Shield";
-  return "Waiting for your decision";
+
+/* ---------- Preview: Lakeside PT on day 1 ---------- */
+function previewRows(){
+  const {A, dec} = effective();
+  const row = (key, ok, warn, t, n) => ({key, state: !dec(key) ? "pend" : warn ? "warn" : "ok", t, n: !dec(key) ? (S.h==="spicy" ? "Needs your decision" : S.h==="medium" ? "Needs your answer" : "Not confirmed yet") : n});
+  const fd = A.el1==="all" ? "Collects the copay and an estimated deductible" : A.el1==="some" ? `Collects the copay, plus a deductible for ${joinAnd(payerNames(A.payers))||"no payers yet"}` : "Collects the copay only";
+  const mod = A.bi1==="auto" ? "Adds modifier 96 for habilitative care" : A.bi1==="hold" ? "Holds habilitative claims for your review" : A.bi1==="none" ? "No change to modifiers" : "Modifier rule not set";
+  const cred = A.bi2==="hold" ? "Holds Dr. Patel's Medica claims until he's credentialed" : A.bi2==="super" ? "Bills Dr. Patel under his supervisor" : A.bi2==="send" ? "Sends Dr. Patel's Medica claims under his name" : "Dr. Patel's Medica claims: not decided";
+  const wo = A.po1==="10" ? "Writes off balances under $10" : A.po1==="5" ? "Writes off balances under $5" : "Balances written off by hand";
+  const sec = A.po2==="auto" ? "Sends Iowa Medicaid the same day Medicare pays" : "Reminds you for each secondary claim";
+  const rates = A.rates==="upload" ? "Wellmark rates from your contract" : A.rates==="infer" ? "Wellmark rates inferred: $79 per visit" : "Wellmark rates from your fee schedule";
+  const t = totals(A);
+  return {groups:[
+    ["AT THE FRONT DESK", [row("el1", true, false, fd, t.collect?`About ${money(t.collect)} more at check-in every 90 days`:"Same as today"), {key:"elig2", state:"ok", t:"Checks insurance 2 days before each visit", n:"And again at check-in"}]],
+    ["ON EVERY CLAIM", [row("bi1", true, A.bi1==="none", mod, A.bi1==="auto"?"38 denials a year prevented":A.bi1==="hold"?"About 3 claims a month to review":"These denials will likely continue"), row("bi2", true, A.bi2==="super"||A.bi2==="send", cred, A.bi2==="hold"?"4 claims wait over the next 2 weeks":"Likely denied by Medica")]],
+    ["WHEN PAYMENTS ARRIVE", [row("po1", true, false, wo, A.po1==="10"?"About 7 hours a month saved":A.po1==="5"?"About 3 hours a month saved":"No change"), row("po2", true, false, sec, A.po2==="auto"?"Paid about 17 days sooner":"About 40 reminders a month"), row("rates", true, false, rates, A.rates==="infer"?"I'll ask for the contract again in 30 days":"Underpayments flagged automatically")]]
+  ], t, A, dec};
 }
-function threadHTML(){
-  const chips = S.claim==="22316702" ? ["Back to my worklist"] : ["Are you sure all four lines need it?","Why modifier 96?","Has this happened before?","Prep a payer call"];
-  return `<section class="panel convo" aria-label="Athelas Agent">
-    <div class="c-top"><div class="agent-id">${AV}<div><div class="ah-name">Athelas Agent</div><div class="ah-status">${S.working?`<span class="dot-work"></span>`:`<span class="dot-live"></span>`}<span aria-live="polite">${statusText()}</span></div></div></div>
-      <button class="cando-btn" data-cando type="button" aria-expanded="${S.canDo}">What I can do</button></div>
-    ${S.canDo?`<div class="cando">I read the claim, submissions, remittances, and medical record. I suggest changes. You decide. I never change the claim or submit without your Accept.</div>`:""}
-    <div class="thread" id="thread"><div class="inner">${logHTML()}</div></div>
-    <div class="composer"><div class="inner">
-      <div class="chips">${chips.map(c=>`<button class="chip" data-chip="${esc(c)}" type="button">${esc(c)}</button>`).join("")}</div>
-      ${S.ref?`<div class="refchip">Reference: ${SOURCES[S.ref].title}<button data-unref type="button" aria-label="Remove reference">&times;</button></div>`:""}
-      <form class="input-row" data-ask autocomplete="off"><input aria-label="Ask Athelas Agent about this claim" placeholder="Ask Athelas Agent about this claim" />
-        <button class="send" type="submit" aria-label="Send"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4l7 7-1.4 1.4L13 7.8V20h-2V7.8l-4.6 4.6L5 11z"/></svg></button></form>
-      <div class="helper">Athelas Agent suggests. You decide.</div>
-    </div></div></section>`;
+function renderPreview(){
+  const {groups, t, A, dec} = previewRows();
+  const sig = {};
+  const html = groups.map(([g, rows])=>`<div class="pv-g">${g}</div>${rows.map(r=>{ const s = r.state+"|"+r.t+"|"+r.n; sig[r.key] = s; const fl = S.prevSig[r.key] && S.prevSig[r.key]!==s ? "flash" : "";
+      return `<div class="pv-row ${r.state==="ok"?"":r.state} ${fl}"><span class="pv-ic">${r.state==="ok"?CHECK:r.state==="warn"?BANG:DOTS}</span><span><div class="pv-t">${esc(r.t)}</div><div class="pv-n">${esc(r.n)}</div></span></div>`; }).join("")}`).join("");
+  S.prevSig = sig;
+  const withDed = A.el1==="all" || (A.el1==="some" && A.payers.includes("wellmark"));
+  const modOk = A.bi1==="auto", modPend = !dec("bi1");
+  const st = modPend || !dec("el1") ? ["pend","Waiting on your setup"] : A.bi1==="none" ? ["warn","Likely denied: missing modifier 96"] : A.bi1==="hold" ? ["pend","Held for your review"] : ["okc","Ready to send"];
+  const claim = `<div class="claim"><div class="h"><b>First Wellmark claim, as it would go out</b><span class="faint small">Nov 17</span></div>
+    <div class="line"><span>97110 Therapeutic exercise<span class="mod">GP</span>${modOk?`<span class="mod new">96</span>`:""}</span><span class="num">$96.50</span></div>
+    <div class="line"><span>97112 Neuromuscular re-ed<span class="mod">GP</span>${modOk?`<span class="mod new">96</span>`:""}</span><span class="num">$96.50</span></div>
+    <div class="line"><span>Collected at check-in</span><span class="num">${withDed?"$25 copay + $60 deductible":"$25 copay"}</span></div>
+    <div class="st ${st[0]}">${st[1]}</div></div>`;
+  $("#preview").innerHTML = `<div class="pv-head"><div class="k"><span>LIVE PREVIEW</span><span>Updates as you answer</span></div><b>Lakeside PT on day 1</b></div>
+    <div class="scroll"><div class="pv-body">
+      <div class="pv-tot"><div><b class="num">${money(t.collect)}</b><span>more at check-in every 90 days</span></div><div><b class="num">${money(t.prevented)}</b><span>denials prevented a year</span></div><div><b class="num">${t.hours}h</b><span>saved each month</span></div></div>
+      ${html}${claim}</div></div>`;
+}
+
+/* ---------- Work: Mild ---------- */
+function fxFor(q, o, payers, sel){ return o.fx==="PAYERS" ? (sel==="some" ? `About ${money(PAYERS.filter(p=>payers.includes(p[0])).reduce((t,p)=>t+p[2],0))} more at check-in every 90 days` : "Pick the payers to see the effect") : o.fx; }
+function payerPicker(list){ return `<div class="payers">${PAYERS.map(([k,l,amt])=>`<label><input type="checkbox" data-payer="${k}" ${list.includes(k)?"checked":""}/>${l}<span class="num">${amt?money(amt):"$0"}</span></label>`).join("")}</div>`; }
+function mildHTML(){
+  const m = S.mild;
+  if (m.view==="review") return reviewHTML();
+  const k = m.cur, q = Q[k], sel = m.sel[k];
+  const i = MILD_ORDER.indexOf(k);
+  const changed = q.prefill && sel && sel!==q.prefill;
+  const tag = q.src==="data" ? `<span class="tag data">From your data</span>` : q.src==="def" ? `<span class="tag def">Athelas default</span>` : `<span class="tag need">Needs your answer</span>`;
+  const doneRows = MILD_ORDER.filter(x=>m.ok[x]).map(x=>`<div class="drow"><span class="ck"></span><span class="q">${Q[x].short}</span><span class="a">${Q[x].opts.find(o=>o.v===m.sel[x]).t}</span></div>`).join("");
+  return `<div class="work-head"><div><div class="wh-t">Confirm your setup</div><div class="wh-s">Question ${i+1} of ${MILD_ORDER.length} shown. Every answer is prefilled from your data.</div></div></div>
+    <div class="scroll"><div class="work-body"><div class="inner reveal">
+      <div class="eyebrow"><span>${AREAS.find(a=>a.id===q.area).name}</span>${m.ok[k]?`<span class="tag ${changed||!q.prefill?"you":"data"}">${changed?"Changed by you":!q.prefill?"Answered by you":"Confirmed"}</span>`:""}</div>
+      <h1 class="q">${q.title}</h1>
+      <div class="src">${tag}<span>${q.conf}</span></div>
+      ${changed?`<div class="note">This is different from what your data shows. That's fine, your answer is the one that's used.</div>`:""}
+      ${q.opts.map(o=>`<button class="opt ${sel===o.v?"sel":""}" data-msel="${o.v}" type="button" aria-pressed="${sel===o.v}"><span class="r"></span><span><b>${o.t}</b>${q.prefill===o.v?`<span class="rec">${q.src==="def"?"Default":"What your data shows"}</span>`:""}<span class="fx ${o.warn?"warn":""}">${fxFor(q,o,m.payers,sel)}</span></span></button>${o.fx==="PAYERS"&&sel==="some"?payerPicker(m.payers):""}`).join("")}
+      <div class="foot"><button class="btn" data-mprev type="button" ${i===0?"disabled":""}>Back</button><button class="btn primary" data-mok type="button" ${sel?"":"disabled"}>${changed?"Save my answer":"Confirm"} and continue</button></div>
+      ${doneRows?`<div class="done-rows"><div class="k">CONFIRMED SO FAR</div>${doneRows}</div>`:""}
+    </div></div></div>`;
+}
+
+/* ---------- Work: Medium ---------- */
+const AVH = `<div class="av" aria-hidden="true"></div>`;
+const mA = (h) => `<div class="msg reveal">${AVH}<div class="b"><div class="who">Athelas Agent</div>${h}</div></div>`;
+const mU = t => `<div class="msg user reveal"><div class="b"><div class="who">Maya</div><div class="bubble">${esc(t)}</div></div></div>`;
+function workSteps(key, live){
+  const w = STEPS[key];
+  return `<div class="work" ${live?'id="wb"':''}><div class="work-t">${w.t}</div>${w.s.map(([a,b])=>`<div class="wstep ${live?"":"done"}"><span class="wck"></span><span><span>${a}</span><span class="wd">${b}</span></span></div>`).join("")}</div>`;
+}
+function mediumHTML(){
+  const m = S.medium;
+  if (m.view==="review") return reviewHTML();
+  const parts = [];
+  if (!m.read) parts.push(mA(workSteps("med", true)));
+  else {
+    parts.push(mA(workSteps("med", false) + `<p style="margin-top:12px">Hi Maya. I'll set up billing for Lakeside PT with you, the way your launcher would. I answered most of it from your WebPT data:</p>
+      <div class="counts"><div><b class="num" style="color:var(--ds-success)">85</b><span>From your data</span></div><div><b class="num" style="color:var(--ds-slate)">5</b><span>Athelas defaults</span></div><div><b class="num" style="color:var(--ds-warning)">5</b><span>Only you can answer</span></div></div>
+      <p>For each one, I'll show what I found, and the preview on the right shows what your answer changes. Nothing goes live until you approve.</p>
+      ${m.started?"":`<div class="btns"><button class="btn primary" data-start type="button">Let's start</button></div>`}`));
+    MED_ORDER.forEach((k,i)=>{
+      if (i > m.idx) return;
+      const q = Q[k], a = m.ans[k];
+      const pend = k==="el1" && m.pickOpen && !a;
+      const chosen = a || (pend ? "some" : null);
+      parts.push(`<div id="mq-${k}">` + mA(`<div class="qcard"><div class="eyebrow"><span>Question ${i+1} of 5, ${AREAS.find(x=>x.id===q.area).name}</span></div><h3>${q.title}</h3>
+        <div class="found"><b>What I found:</b> ${q.found}</div>
+        ${q.opts.map(o=>`<button class="opt ${chosen===o.v?"sel":""} ${chosen&&chosen!==o.v?"dim":""}" data-mans="${k}:${o.v}" type="button" ${chosen?"disabled":""}><span class="r"></span><span><b>${o.t}</b>${o.rec?`<span class="rec">Recommended</span>`:""}<span class="fx ${o.warn?"warn":""}">${fxFor(q,o,m.payers,chosen)}</span></span></button>`).join("")}
+      </div>`) + `</div>`);
+      if (pend) parts.push(mU("Copays, plus deductibles for some payers") + mA(`<p>Which payers do you collect a deductible for?</p>${payerPicker(m.payers)}<div class="btns"><button class="btn primary sm" data-payok type="button">Use these payers</button></div>`));
+      if (a){
+        parts.push(mU(q.opts.find(o=>o.v===a).t));
+        parts.push(mA(k==="el1"&&a==="some" ? `<p>Thanks, I didn't see that in your data. I updated your setup to collect deductibles for ${joinAnd(payerNames(m.payers))}. It's showing in the preview.</p>` : `<p>Done. It's in your preview on the right.</p>`));
+      }
+    });
+    if (MED_ORDER.every(k=>m.ans[k])) parts.push(mA(`<p>That's everything I needed. I tested your setup on your last 90 days of claims. Ready to review?</p><div class="btns"><button class="btn primary" data-area="review" type="button">Review and go live</button></div>`));
+  }
+  m.chat.forEach(c=>parts.push(c.u?mU(c.t):mA(c.t)));
+  return `<div class="work-head">${AVH}<div><div class="wh-t">Athelas Agent</div><div class="wh-s">${S.working?`<span class="spin"></span>Reading your data`:`<span class="live"></span>Setting up Lakeside PT with you`}</div></div></div>
+    <div class="scroll" id="thread"><div class="work-body"><div class="inner">${parts.join("")}</div></div></div>
+    <div class="composer"><div class="inner"><div class="chips"><button class="chip" data-chip="Why are you asking me this?" type="button">Why are you asking me this?</button><button class="chip" data-chip="What if I get this wrong?" type="button">What if I get this wrong?</button><button class="chip" data-chip="Can I talk to a person?" type="button">Can I talk to a person?</button></div>
+      <form class="inrow" data-ask autocomplete="off"><input aria-label="Ask Athelas Agent" placeholder="Ask Athelas Agent about your setup"/><button class="send" type="submit" aria-label="Send"><svg width="14" height="14" viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M12 4l7 7-1.4 1.4L13 7.8V20h-2V7.8l-4.6 4.6L5 11z"/></svg></button></form></div></div>`;
+}
+
+/* ---------- Work: Spicy ---------- */
+function spicyHTML(){
+  const s = S.spicy;
+  if (s.view==="review") return reviewHTML();
+  if (!s.built) return `<div class="work-head">${AVH}<div><div class="wh-t">Athelas Agent</div><div class="wh-s"><span class="spin"></span>Building your setup</div></div></div><div class="scroll"><div class="work-body"><div class="inner">${workSteps("spicy", true)}</div></div></div>`;
+  const left = EXC.filter(x=>!s.done[x.id]).length;
+  const cards = EXC.map(x=>{
+    const done = s.done[x.id], open = s.open===x.id && !done;
+    const a = s.sel[x.id] || x.opts.find(o=>o.rec).v;
+    return `<div class="exc ${open?"open":""}"><button class="exc-h" data-xopen="${x.id}" type="button" aria-expanded="${open}"><span class="tag ${x.kind}">${x.kindL}</span><b>${x.title}</b>${done?`<span class="ok">${x.opts.find(o=>o.v===a).t}</span>`:""}</button>
+      ${open?`<div class="exc-b"><p>${x.body}</p>${x.opts.map(o=>`<button class="opt ${a===o.v?"sel":""}" data-xsel="${x.id}:${o.v}" type="button"><span class="r"></span><span><b>${o.t}</b>${o.rec?`<span class="rec">Recommended</span>`:""}<span class="fx ${o.warn?"warn":""}">${o.fx}</span></span></button>`).join("")}<div class="btns"><button class="btn primary sm" data-xok="${x.id}" type="button">Use this</button></div></div>`:""}</div>`;
+  }).join("");
+  return `<div class="work-head">${AVH}<div><div class="wh-t">Athelas Agent</div><div class="wh-s"><span class="live"></span>${left?`Built your setup. ${left} decision${left===1?"":"s"} left`:"Setup ready for your approval"}</div></div></div>
+    <div class="scroll"><div class="work-body"><div class="inner">
+      <div class="hero">${AVH}<div><h1>Your billing is set up, Maya.</h1><p>I built it from your WebPT data and from 14 similar PT practices on Athelas. ${left?`${left===3?"These 3 decisions":left===1?"This decision":"These "+left+" decisions"} need you before go-live.`:"Everything is decided."}</p></div></div>
+      <div class="drow" style="margin-bottom:14px"><span class="ck"></span><span class="q">Built 64 rules from 6,412 claims and 14 similar practices, tested on your last 1,604 claims</span></div>
+      ${cards}
+      ${left?"":`<div class="btns" style="margin-top:6px"><button class="btn primary" data-area="review" type="button">Review and go live</button></div>`}
+    </div></div></div>`;
+}
+
+/* ---------- Review (shared) ---------- */
+function reviewHTML(){
+  const st = S[S.h], {A} = effective(), t = totals(A), ready = readyToReview();
+  const who = S.h==="mild" ? "You confirmed all 95 answers." : S.h==="medium" ? "Athelas Agent answered 85 from your data, 5 are Athelas defaults, and you answered 5." : "Athelas Agent built 92 answers from your data and similar practices. You made 3 decisions.";
+  return `<div class="work-head">${S.h==="mild"?"":AVH}<div><div class="wh-t">Review and go live</div><div class="wh-s">Tested on your last 90 days of claims</div></div></div>
+    <div class="scroll"><div class="work-body"><div class="inner reveal">
+      <h1 class="q">Here's what your setup will do</h1><p class="why">${who} The full picture is in the preview on the right.</p>
+      <div class="totals"><div><b class="num">${money(t.collect)}</b><span>more collected at check-in every 90 days</span></div><div><b class="num">${money(t.prevented)}</b><span>in denials prevented a year</span></div><div><b class="num">${t.hours} hours</b><span>saved each month</span></div></div>
+      ${st.approved ? `<div class="approved"><b>Approved by Maya Ortiz, PT, DPT.</b> <span class="muted">Your setup goes live with your first claims on Nov 17.${S.h==="mild"?"":" Athelas Agent will watch the first 30 days and tell you if anything needs a change."}</span></div>`
+        : st.confirm ? `<p><b>Approve your setup?</b> It goes live with your first claims on Nov 17. You can change any answer later.</p><div class="btns"><button class="btn primary" data-approve-yes type="button">Approve and go live</button><button class="btn" data-approve-no type="button">Cancel</button></div>`
+        : ready ? `<div class="btns"><button class="btn primary" data-approve type="button">Approve setup</button><button class="btn" data-back type="button">Back</button></div>`
+        : `<p class="muted">Finish the steps marked in the rail before approving.</p><button class="btn" data-back type="button">Back to setup</button>`}
+    </div></div></div>`;
 }
 
 /* ---------- Render ---------- */
 function render(opts={}){
-  renderTop(); renderTracker();
+  location.hash = S.h;
+  renderSeg(); renderRail(); renderPreview();
   const prev = $("#thread") ? $("#thread").scrollTop : 0;
-  $("#main").innerHTML = S.view==="worklist" ? worklistHTML() : `<div class="claim">${leftHTML()}${threadHTML()}</div>`;
-  const t = $("#thread");
-  if (t) t.scrollTop = opts.keep ? prev : t.scrollHeight;
-  document.querySelectorAll(".ah-status .dot-live").forEach(()=>{});
+  $("#work").innerHTML = S.h==="mild" ? mildHTML() : S.h==="medium" ? mediumHTML() : spicyHTML();
+  const th = $("#thread");
+  if (th){ if (opts.to){ const el = document.getElementById(opts.to); th.scrollTop = el ? Math.max(0, el.offsetTop - th.offsetTop - 12) : th.scrollHeight; } else th.scrollTop = opts.keep ? prev : th.scrollHeight; }
+  if (!S.working){
+    if (S.h==="medium" && !S.medium.read) run("med", ()=>{ S.medium.read = true; render(); });
+    if (S.h==="spicy" && !S.spicy.built) run("spicy", ()=>{ S.spicy.built = true; render(); });
+  }
 }
 let timer = null;
-function work(key, done, ms){
-  clearTimeout(timer);
-  const entry = {k:"work", key, live:true};
-  S.log.push(entry); S.working = key; render();
-  const n = STEPS_W[key].steps.length; let i = 0;
+function run(key, done){
+  clearTimeout(timer); S.working = true; const forH = S.h;
+  const n = STEPS[key].s.length; let i = 0;
   const step = () => {
-    document.querySelectorAll("#workBlock .wstep").forEach((el,k)=>{ el.classList.toggle("done",k<i); el.classList.toggle("active",k===i); });
-    if (i>n){ S.working = null; entry.live = false; done(); return; }
-    i++; timer = setTimeout(step, reduced ? 60 : (i>n ? 450 : (ms||1200)));
+    if (S.h !== forH){ S.working = false; return; }
+    document.querySelectorAll("#wb .wstep").forEach((el,k)=>{ el.classList.toggle("done",k<i); el.classList.toggle("active",k===i); });
+    if (i>n){ S.working = false; done(); return; }
+    i++; timer = setTimeout(step, reduced?60:(i>n?450:1150));
   };
   step();
 }
-
-/* ---------- Actions ---------- */
-function openClaim(id){
-  if (id==="22316702" && !S.resubmitted){ S.claim = id; S.view = "claim"; S.log = [{k:"agent", html:`<p>This prototype walks through claim 22316691. Open that one to start.</p>`}]; render(); return; }
-  if (id!=="22316691" && id!=="22316702"){ return; }
-  S.view = "claim"; S.claim = id; S.left = "props"; S.opened = true;
-  if (id==="22316691" && !S.read){ work("open", () => { S.read = true; S.log.push({k:"summary"}); render(); }); return; }
-  render();
-}
-function afterResubmit(){
-  S.log.push({k:"resub"});
-  render();
-  setTimeout(() => work("similar", () => { S.similarShown = true; S.log.push({k:"similar"}); render(); }), reduced?0:700);
-}
-function chat(text){
-  const t = text.trim(); if (!t) return;
-  if (S.working) return;
-  const q = t.toLowerCase();
-  if (q.includes("back to my worklist")){ finish(); return; }
-  S.log.push({k:"user", text:t});
-  const ref = S.ref; S.ref = null;
-  if (q.includes("sure") || q.includes("four") || q.includes("all 4") || q.includes("all lines")){
-    S.asked = true;
-    if (S.revised){ S.log.push({k:"agent", html:`<p>Yes, I checked: only 97110, 97112, and 97140 need it. See the revised step above.</p>`}); render(); return; }
-    work("check", () => { S.revised = true; S.log.push({k:"revision"}); render(); });
-    return;
-  }
-  let html, how;
-  if (ref) { html = `<p>About the ${SOURCES[ref].title.toLowerCase()}: ${ref==="record"?"the plan of care is habilitative, which is why modifier 96 applies.":ref==="remit"?"CO-4 means a required modifier is missing. Nothing was paid.":ref==="history"?"the claim was sent once, on Oct 9, without modifier 96.":"these are the lines I'd change."}</p>`; how = ref; }
-  else if (q.includes("96") || q.includes("why")) { html = `<p>Modifier 96 marks habilitative care, which builds skills a patient never had. Modifier 97 marks rehabilitative care, which restores lost skills. Alex's plan of care is habilitative.</p>`; how = "record"; }
-  else if (q.includes("before") || q.includes("similar") || q.includes("other claims")) html = S.similarShown ? `<p>Yes. The 23 claims above have the same cause.</p>` : `<p>Yes, I see others with the same cause. Let's fix this one first, then I'll show you the rest so you can apply the same fix.</p>`;
-  else if (q.includes("paid")) { html = `<p>Nothing has been paid. The full $386.00 is open.</p>`; how = "remit"; }
-  else if (q.includes("call") || q.includes("phone")) html = `<p>Here's what you'll need for the call:</p><div class="card callprep"><span>Payer</span><span>Iowa Blue Shield, provider line</span><span>Claim</span><span>22316691</span><span>Member ID</span><span>IBS10001</span><span>Date of service</span><span>Oct 7, 2026</span><span>Denial</span><span>CO-4</span><span>Ask</span><span>Is modifier 96 required on 97161 for this plan?</span></div>`;
-  else if (q.includes("policy")) html = `<p>I don't have Iowa Blue Shield's full policy on file, so I won't guess beyond what's in their bulletins. If you want certainty, I can add a step to confirm with them.</p>`;
-  else html = `<p>I can help with this claim: why it was denied, what a code means, what will change, or similar claims.</p>`;
-  S.log.push({k:"agent", html, how});
-  render();
-}
-function finish(){
-  S.finished = true; S.view = "worklist"; S.claim = null; render();
+function nextMild(){
+  const m = S.mild; const i = MILD_ORDER.indexOf(m.cur);
+  const nx = MILD_ORDER.slice(i+1).find(k=>!m.ok[k]) || MILD_ORDER.find(k=>!m.ok[k]);
+  if (nx) m.cur = nx; else if (readyToReview()) m.view = "review";
 }
 
+/* ---------- Events ---------- */
 document.addEventListener("click", e => {
-  if (S.trackerOpen && !e.target.closest("#tracker")){ S.trackerOpen = false; renderTracker(); }
-  const row = e.target.closest("tr[data-open]");
-  if (row){ openClaim(row.dataset.open); return; }
   const el = e.target.closest("button"); if (!el) return;
-  if (el.dataset.goto==="worklist"){ if (S.claim==="22316702") S.finished = true; S.view = "worklist"; S.claim = null; render(); return; }
-  if (el.dataset.left){ S.left = el.dataset.left; if (el.dataset.left==="record" || el.dataset.left==="remit" || el.dataset.left==="details" || el.dataset.left==="history") S.evidence = true; render({keep:true}); return; }
-  if (el.dataset.src){ S.left = el.dataset.src==="policy" ? "props" : el.dataset.src; if (el.dataset.src==="policy"){ S.left = "policy"; } S.evidence = true; render({keep:true}); return; }
-  if (el.dataset.ref){ S.ref = el.dataset.ref; render({keep:true}); $("form[data-ask] input").focus(); return; }
-  if (el.hasAttribute("data-unref")){ S.ref = null; render({keep:true}); return; }
-  if (el.hasAttribute("data-cando")){ S.canDo = !S.canDo; render({keep:true}); return; }
-  if (el.dataset.thumb){ S.thumbs = el.dataset.thumb; render({keep:true}); return; }
-  if (el.dataset.chip){ chat(el.dataset.chip); return; }
-  if (el.hasAttribute("data-tracker")){ S.trackerOpen = !S.trackerOpen; renderTracker(); return; }
-  if (el.dataset.reason){ S.notThis = null; S.log.push({k:"event", html:`Feedback from Elliot: "${el.dataset.reason}". Sent to Athelas Agent.`}); S.log.push({k:"agent", html:`<p>Thanks. Tell me what you'd change, or edit the step and I'll use your version.</p>`}); render(); return; }
-  const a = el.dataset.act;
-  if (a){
-    if (a==="s1accept"){ S.s1 = "accepted"; S.s2 = "open"; S.log.push({k:"event", html:`Step 1 accepted by Elliot. Modifier 96 added to ${fixLines().join(", ")}.`}); render({keep:true}); return; }
-    if (a==="s1edit"){ S.s1edit = true; render({keep:true}); return; }
-    if (a==="s1cancel"){ S.s1edit = false; render({keep:true}); return; }
-    if (a==="s1save"){ S.s1lines = [...document.querySelectorAll("[data-editline]:checked")].map(x=>x.dataset.editline); if (!S.s1lines.length) S.s1lines = ["97110"]; S.s1edit = false; S.revisedAccepted = false; S.log.push({k:"event", html:`Step 1 edited by Elliot: ${S.s1lines.join(", ")}.`}); render({keep:true}); return; }
-    if (a==="s1not"){ S.notThis = 1; render({keep:true}); return; }
-    if (a==="s1couldnt"){ S.couldnt = true; S.log.push({k:"event", html:"Elliot couldn't confirm the plan of care. Step 1 stays open."}); S.log.push({k:"agent", html:`<p>No problem. I'll keep this claim open with a note. You can come back to it, or move on.</p><div class="btns"><button class="btn" data-act="skip" type="button">Skip to next claim</button></div>`}); render(); return; }
-    if (a==="skip"){ S.log.push({k:"next"}); S.nextOffered = true; render(); return; }
-    if (a==="revAccept"){ S.revisedAccepted = true; S.s1lines = ["97110","97112","97140"]; S.log.push({k:"event", html:"Revised plan accepted by Elliot. Step 1 now covers 3 lines."}); render({keep:true}); return; }
-    if (a==="revKeep"){ S.revisedAccepted = false; S.log.push({k:"event", html:"Elliot kept the original plan, 4 lines."}); S.asked = true; render({keep:true}); return; }
-    if (a==="s2accept"){ S.s2 = "accepted"; S.s3 = "open"; S.log.push({k:"event", html:"Preview checked by Elliot."}); render({keep:true}); return; }
-    if (a==="s2back"){ S.s1 = "open"; S.s2 = "locked"; render({keep:true}); return; }
-    if (a==="s3accept"){ S.s3 = "accepted"; S.resubmitted = true; S.left = "props"; S.resubUndone = false; afterResubmit(); return; }
-    if (a==="undoResub"){ S.resubUndone = true; S.s3 = "open"; S.resubmitted = false; render({keep:true}); return; }
-    if (a==="apply"){ S.applied = true; S.batchUndone = false; S.log.push({k:"batch"}); S.log.push({k:"next"}); S.nextOffered = true; render(); return; }
-    if (a==="undoBatch"){ S.batchUndone = true; S.applied = false; render({keep:true}); return; }
-    if (a==="loadNext"){ S.nextOpened = true; S.claim = "22316702"; S.left = "props"; S.log = []; work("next", () => { S.nextRead = true; S.log.push({k:"agent", html:`<div class="card sum"><h4>Where things stand</h4><p>Prairie Health Plan denied two therapy lines on Oct 8, 2026. The referring provider is missing on both. The referral from Dr. Kim is on file, so I can add it.</p><div class="evs"><button class="ev" type="button">Denial: CO-16</button><button class="ev" type="button">Referral on file</button></div></div><p class="muted small" style="margin-top:10px">Prototype ends here. The same loop repeats for every claim.</p><div class="btns"><button class="btn primary" data-act="finish" type="button">Back to my worklist</button></div>`}); render(); }); return; }
-    if (a==="stay"){ S.log.push({k:"agent", html:`<p>Sure. The next claim will be at the top of your worklist when you're ready.</p><div class="btns"><button class="btn" data-act="finish" type="button">Back to my worklist</button></div>`}); render(); return; }
-    if (a==="finish"){ finish(); return; }
+  if (el.dataset.hz){ clearTimeout(timer); S.working = false; S.h = el.dataset.hz; S.prevSig = {}; render(); return; }
+  if (el.dataset.area){
+    const a = el.dataset.area, h = S.h;
+    if (a==="review"){ S[h].view = "review"; render(); return; }
+    if (h==="mild"){ S.mild.view = "q"; const k = MILD_ORDER.find(x=>Q[x].area===a && !S.mild.ok[x]) || MILD_ORDER.find(x=>Q[x].area===a); if (k) S.mild.cur = k; render(); return; }
+    if (h==="medium"){ S.medium.view = "chat"; const k = MED_ORDER.find(x=>Q[x].area===a); render({to: k && MED_ORDER.indexOf(k)<=S.medium.idx ? "mq-"+k : null}); return; }
+    S.spicy.view = "main"; const x = EXC.find(y=>y.area===a && !S.spicy.done[y.id]) || EXC.find(y=>y.area===a); if (x) S.spicy.open = x.id; render(); return;
   }
-  if (el.dataset.grp){ return; }
-  if (el.id==="protoBtn"){ const p=$("#proto"); const on=!p.classList.contains("show"); p.classList.toggle("show",on); el.setAttribute("aria-expanded",on); return; }
-  if (el.hasAttribute("data-hold")){ S.hold = S.hold==="open" ? "ended" : "open"; el.textContent = "Hold: " + (S.hold==="open" ? "still open" : "ended"); render({keep:true}); return; }
-  if (el.dataset.jump) jump(el.dataset.jump);
-  if (el.id==="aiBtn"){ const i = document.querySelector("form[data-ask] input"); if (i) i.focus(); }
+  if (el.dataset.bulk){ S.mild.bulk[el.dataset.bulk] = true; if (readyToReview() && MILD_ORDER.every(k=>S.mild.ok[k])) S.mild.view = "review"; render(); return; }
+  if (el.hasAttribute("data-launcher")){ alert("This would hand the conversation to Priya, your Commure launcher, with your answers so far."); return; }
+  // Mild
+  if (el.dataset.msel){ S.mild.sel[S.mild.cur] = el.dataset.msel; render(); return; }
+  if (el.hasAttribute("data-mok")){ S.mild.ok[S.mild.cur] = true; nextMild(); render(); return; }
+  if (el.hasAttribute("data-mprev")){ const i = MILD_ORDER.indexOf(S.mild.cur); if (i>0) S.mild.cur = MILD_ORDER[i-1]; render(); return; }
+  // Medium
+  if (el.hasAttribute("data-start")){ S.medium.started = true; S.medium.idx = 0; render({to:"mq-el1"}); return; }
+  if (el.dataset.mans){ const [k,v] = el.dataset.mans.split(":"); if (k==="el1" && v==="some"){ S.medium.pickOpen = true; render(); return; } S.medium.ans[k] = v; S.medium.idx = Math.min(MED_ORDER.length-1, Math.max(S.medium.idx, MED_ORDER.indexOf(k)+1)); render({to: MED_ORDER[S.medium.idx]!==k && !S.medium.ans[MED_ORDER[S.medium.idx]] ? "mq-"+MED_ORDER[S.medium.idx] : null}); return; }
+  if (el.hasAttribute("data-payok")){ S.medium.ans.el1 = "some"; S.medium.idx = Math.max(S.medium.idx, 1); render({to:"mq-bi1"}); return; }
+  if (el.dataset.chip){ chat(el.dataset.chip); return; }
+  // Spicy
+  if (el.dataset.xopen){ S.spicy.open = el.dataset.xopen; render(); return; }
+  if (el.dataset.xsel){ const [id,v] = el.dataset.xsel.split(":"); S.spicy.sel[id] = v; render(); return; }
+  if (el.dataset.xok){ const id = el.dataset.xok; if (!S.spicy.sel[id]) S.spicy.sel[id] = EXC.find(x=>x.id===id).opts.find(o=>o.rec).v; S.spicy.done[id] = true; const nx = EXC.find(x=>!S.spicy.done[x.id]); S.spicy.open = nx ? nx.id : null; render(); return; }
+  // Review
+  if (el.hasAttribute("data-approve")){ S[S.h].confirm = true; render(); return; }
+  if (el.hasAttribute("data-approve-no")){ S[S.h].confirm = false; render(); return; }
+  if (el.hasAttribute("data-approve-yes")){ S[S.h].approved = true; S[S.h].confirm = false; render(); return; }
+  if (el.hasAttribute("data-back")){ S[S.h].view = S.h==="medium" ? "chat" : S.h==="mild" ? "q" : "main"; render(); return; }
+  // Prototype controls
+  if (el.id==="protoBtn"){ const p = $("#proto"); const on = !p.classList.contains("show"); p.classList.toggle("show", on); el.setAttribute("aria-expanded", on); return; }
+  if (el.dataset.jump){
+    clearTimeout(timer); S.working = false; const j = el.dataset.jump, h = S.h;
+    S[h] = freshH(h); S.prevSig = {};
+    if (j!=="reset"){
+      if (h==="mild"){ MILD_ORDER.forEach(k=>{ if (!S.mild.sel[k]) S.mild.sel[k] = Q[k].opts[0].v; S.mild.ok[k] = true; }); AREAS.forEach(a=>S.mild.bulk[a.id] = true); }
+      if (h==="medium"){ S.medium.read = true; S.medium.started = true; S.medium.idx = MED_ORDER.length-1; MED_ORDER.forEach(k=>S.medium.ans[k] = Q[k].opts.find(o=>o.rec).v); }
+      if (h==="spicy"){ S.spicy.built = true; EXC.forEach(x=>{ S.spicy.sel[x.id] = x.opts.find(o=>o.rec).v; S.spicy.done[x.id] = true; }); S.spicy.open = null; }
+      S[h].view = "review"; if (j==="approved") S[h].approved = true;
+    }
+    render();
+  }
 });
 document.addEventListener("change", e => {
-  if (e.target.dataset.grp){ S.picked[e.target.dataset.grp] = e.target.checked; render({keep:true}); }
+  if (e.target.dataset.payer){
+    const list = [...document.querySelectorAll("[data-payer]:checked")].map(x=>x.dataset.payer);
+    if (S.h==="mild") S.mild.payers = list; else S.medium.payers = list;
+    render({keep:true});
+  }
 });
-document.addEventListener("keydown", e => {
-  const row = e.target.closest && e.target.closest("tr[data-open]");
-  if (row && (e.key==="Enter" || e.key===" ")){ e.preventDefault(); openClaim(row.dataset.open); }
-});
-document.addEventListener("submit", e => {
-  const f = e.target.closest("form[data-ask]"); if (!f) return;
-  e.preventDefault(); const i = f.querySelector("input"); const v = i.value; i.value = ""; chat(v);
-});
-
-function jump(j){
-  clearTimeout(timer);
-  const hold = S.hold, tr = S.trackerOpen;
-  S = fresh(); S.hold = hold; S.trackerOpen = tr;
-  if (j==="reset"){ render(); return; }
-  S.view = "claim"; S.claim = "22316691"; S.read = true; S.opened = true;
-  S.log = [{k:"work", key:"open", live:false}, {k:"summary"}];
-  if (j==="summary"){ render(); $("#thread").scrollTop = 0; return; }
-  S.evidence = true; S.asked = true; S.revised = true; S.revisedAccepted = true; S.s1lines = ["97110","97112","97140"];
-  S.log.push({k:"user", text:"Are you sure all four lines need it?"}, {k:"work", key:"check", live:false}, {k:"revision"}, {k:"event", html:"Revised plan accepted by Elliot. Step 1 now covers 3 lines."});
-  if (j==="revised"){ render(); return; }
-  S.s1 = "accepted"; S.s2 = "accepted"; S.s3 = "accepted"; S.resubmitted = true;
-  S.log.push({k:"event", html:"Step 1 accepted by Elliot. Modifier 96 added to 97110, 97112, 97140."}, {k:"event", html:"Preview checked by Elliot."}, {k:"resub"});
-  if (j==="resubmitted"){ render(); return; }
-  S.similarShown = true; S.log.push({k:"work", key:"similar", live:false}, {k:"similar"});
-  if (j==="pattern"){ render(); return; }
-  S.applied = true; S.nextOffered = true; S.log.push({k:"batch"}, {k:"next"});
-  render();
+document.addEventListener("submit", e => { const f = e.target.closest("form[data-ask]"); if (!f) return; e.preventDefault(); const i = f.querySelector("input"); const v = i.value; i.value = ""; chat(v); });
+function chat(t){
+  t = t.trim(); if (!t) return; const q = t.toLowerCase(); const m = S.medium;
+  m.chat.push({u:true, t});
+  let a;
+  if (q.includes("why")) a = `<p>I only ask what your data can't answer. WebPT records what happened, not your policy, so these are choices only you can make.</p>`;
+  else if (q.includes("wrong")) a = `<p>Nothing goes live until you approve, and you can change any answer later. The preview shows the effect of every answer before then.</p>`;
+  else if (q.includes("person") || q.includes("launcher") || q.includes("human")) a = `<p>Of course. I'll send your question to Priya, your launcher, with this conversation and your answers so far, so you don't start over.</p>`;
+  else a = `<p>I can explain a question, show the data behind it, or tell you what an answer changes.</p>`;
+  m.chat.push({u:false, t:a}); render();
 }
-
 render();
 </script>
 </body>
